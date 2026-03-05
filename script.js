@@ -394,12 +394,13 @@ function enviarWhatsApp() {
     const obsGerais = document.getElementById('observacoesGerais').value.trim();
     const empresa = document.getElementById('nome-empresa').innerText;
 
-    // Usei hífens simples. Se o erro persistir, remova esta linha.
-    const div = "----------------------------";
+    let totalGeralPeças = 0;
+    const div = "------------------------------------------";
 
-    let msg = "*PEDIDO: " + empresa + "*\n";
-    msg += "*CLIENTE:* " + nome + "\n";
-    if (obsGerais) msg += "*OBS:* " + obsGerais + "\n";
+    let msg = "*RESUMO DO PEDIDO*\n";
+    msg += "EMPRESA: " + empresa + "\n";
+    msg += "CLIENTE: " + nome + "\n";
+    if (obsGerais) msg += "OBS: " + obsGerais + "\n";
     msg += div + "\n\n";
 
     const grupos = document.querySelectorAll('.grupo-modelagem');
@@ -412,42 +413,42 @@ function enviarWhatsApp() {
         const inputModManual = grupo.querySelector('.i-mod-manual');
         let modelagem = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
 
-        msg += "*" + (modelagem || 'PADRÃO').toUpperCase() + "*\n";
-        msg += "*TECIDO:* " + (tecido || 'PADRÃO').toUpperCase() + "\n";
+        msg += "MODELO: " + (modelagem || 'PADRÃO').toUpperCase() + "\n";
+        msg += "TECIDO: " + (tecido || 'PADRÃO').toUpperCase() + "\n";
 
         grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(function(row) {
             const item = row.querySelector('.i-nome').value.trim().toUpperCase();
             const tam = row.querySelector('.i-tam').value.trim().toUpperCase();
             const num = row.querySelector('.i-num').value.trim();
-            const qtd = row.querySelector('.i-qtd').value;
+            const qtdInput = row.querySelector('.i-qtd').value;
+            const qtd = parseInt(qtdInput) || 0;
             const adicional = row.querySelector('.i-adicional').value.trim();
 
-            if (item || tam) {
-                // Montagem sem nenhum caractere especial, apenas texto puro
-                msg += "- " + qtd + "x " + item + " (" + tam + ")";
-                if (num) msg += " N° " + num;
-                if (adicional) msg += " [" + adicional + "]";
-                msg += "\n";
+            if (item || tam || qtd > 0) {
+                totalGeralPeças += qtd;
+                
+                // Formatação solicitada: > 1 un. - M - GILSON (N 99) [Camisa]
+                let linha = " > " + qtd + " un. - " + (tam || "S/T");
+                
+                if (item) linha += " - " + item;
+                if (num) linha += " (N " + num + ")";
+                if (adicional) linha += " [" + adicional + "]";
+                
+                msg += linha + "\n";
             }
         });
         msg += "\n";
     });
 
     msg += div + "\n";
-    msg += "_Gerado via Sistema_";
+    msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
+    msg += "Gerado via Portal de Pedidos";
 
-    const foneCliente = document.getElementById('clienteTelefone').value.replace(/\D/g, '');
-    
-    // encodeURIComponent é essencial para transformar o texto em link de internet
     const textoFinal = encodeURIComponent(msg);
-    
-    const linkZap = foneCliente.length >= 10 
-        ? "https://wa.me/" + foneCliente + "?text=" + textoFinal
-        : "https://wa.me/?text=" + textoFinal;
+    const linkZap = "https://wa.me/?text=" + textoFinal;
 
     window.open(linkZap, '_blank');
 }
-
 
 // INICIALIZAÇÃO
 carregarPerfil();
