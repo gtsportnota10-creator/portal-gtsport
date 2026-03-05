@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal de Pedidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <div id="container-perfil">
+                <img id="logo-empresa" src="" alt="Logo" style="display:none;">
+                <h1 id="nome-empresa">Carregando...</h1>
+                <p id="nome-atendente"></p>
+            </div>
+        </header>
+
+        <div id="formulario-pedido">
+            <section class="card">
+                <h2>Dados do Cliente</h2>
+                
+                <div class="grid-campos">
+                    <div class="campo">
+                        <label>Nome</label>
+                        <input type="text" id="clienteNome" placeholder="Seu nome">
+                    </div>
+                    <div class="campo">
+                        <label>WhatsApp</label>
+                        <input type="tel" id="clienteTelefone" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+
+                
+
+                <div class="campo" style="margin-top: 15px;">
+                    <label>Observações Gerais</label>
+                    <textarea id="observacoesGerais" placeholder="Algum detalhe adicional para a produção?" rows="2"></textarea>
+                </div>
+            </section>
+
+            <div id="container-modelagens"></div>
+
+            <div class="acoes-pedido">
+                <button type="button" class="btn-sec" onclick="adicionarGrupoModelagem()">
+                    ➕ Outra Modelagem 
+                </button>
+
+                <button class="btn-main" id="btnFinalizar" onclick="enviarPedido()">
+                    FINALIZAR PEDIDO
+                </button>
+            </div>
+        </div>
+
+        <div id="tela-sucesso" style="display:none;">
+    <div class="card" style="text-align:center; padding: 40px 20px; border-radius: 24px;">
+        <div class="icone-sucesso" style="font-size: 50px; margin-bottom: 10px;">✅</div>
+        <h2 style="color: #10b981; border:none; font-weight: 800; margin-bottom: 10px;">PEDIDO RECEBIDO!</h2>
+        <p style="color: #64748b; margin-bottom: 30px;">O seu pedido já foi enviado para nossa produção com sucesso.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn-edit-gray" onclick="voltarParaEditar()" style="width: 100%; cursor: pointer;">
+                ← ADICIONAR MAIS ITENS / EDITAR
+            </button>
+
+            <button class="btn-main-green" onclick="prepararNovoPedido()" style="width: 100%; cursor: pointer;">
+                ✨ FAZER NOVO PEDIDO DO ZERO
+            </button>
+
+           <button class="btn-main" onclick="enviarWhatsApp()" style="width: 100%; background: #25d366; box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4); margin-bottom: 5px;">
+    icon 🟢 ENVIAR RESUMO NO WHATSAPP
+</button>
+        </div>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+
+
+<div id="modal-conferencia" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Conferir Pedido</h3>
+            <p style="font-size: 14px; color: #64748b; margin-top: -10px;">Verifique os dados antes de enviar</p>
+        </div>
+        
+        <div id="resumo-pedido-html" class="resumo-container">
+            </div>
+
+        <div class="modal-actions">
+    <button class="btn-main-green" onclick="confirmarEEnviar()">
+    ✅ ENVIAR AGORA
+</button>
+    <button type="button" class="btn-edit-gray" onclick="fecharConferencia()">
+        ⬅ VOLTAR E EDITAR
+    </button>
+</div>
+    </div>
+</div>
+
+</body>
+</html>
