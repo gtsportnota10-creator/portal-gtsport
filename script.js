@@ -5,6 +5,8 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let listaModelagens = [];
 let listaTecidos = []; 
+
+// Variáveis de memória para manter o tecido selecionado no próximo grupo
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
 
@@ -15,13 +17,15 @@ function obterEmailVendedor() {
     const urlAtual = window.location.href;
     const params = new URLSearchParams(window.location.search);
     let vendedorId = params.get('id') || params.get('atendente');
+
     if (!vendedorId && urlAtual.includes('id=')) {
         vendedorId = urlAtual.split('id=')[1].split('&')[0];
     }
+
     return vendedorId ? vendedorId.trim().toLowerCase() : null;
 }
 
-// --- LOGICA DE SALVAMENTO LOCAL ---
+// --- FUNÇÕES DE PERSISTÊNCIA (LOCALSTORAGE) ---
 
 function salvarProgressoLocal() {
     const dados = {
@@ -71,15 +75,15 @@ function carregarProgressoLocal() {
         const container = document.getElementById('container-modelagens');
         container.innerHTML = ""; 
         dados.grupos.forEach(g => {
-            adicionarGrupoModelagemCompleto(g);
+            adicionarGrupoModelagemSalva(g);
         });
     } else {
         adicionarGrupoModelagem();
     }
 }
 
-// Auxiliar para reconstruir grupos salvos
-function adicionarGrupoModelagemCompleto(dadosGrupo) {
+// Função auxiliar para reconstruir grupos do LocalStorage mantendo sua estrutura
+function adicionarGrupoModelagemSalva(dadosGrupo) {
     adicionarGrupoModelagem();
     const grupos = document.querySelectorAll('.grupo-modelagem');
     const ultimo = grupos[grupos.length - 1];
@@ -97,18 +101,18 @@ function adicionarGrupoModelagemCompleto(dadosGrupo) {
     dadosGrupo.itens.forEach(it => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="i-nome" value="${it.nome}" oninput="salvarProgressoLocal()"></td>
-            <td><input type="text" class="i-tam" value="${it.tam}" oninput="this.value = this.value.toUpperCase(); salvarProgressoLocal()"></td>
-            <td><input type="text" class="i-num" value="${it.num}" oninput="salvarProgressoLocal()"></td>
+            <td><input type="text" class="i-nome" value="${it.nome}" oninput="salvarProgressoLocal()" placeholder="Nome"></td>
+            <td><input type="text" class="i-tam" value="${it.tam}" oninput="this.value = this.value.toUpperCase(); salvarProgressoLocal()" placeholder="G"></td>
+            <td><input type="text" class="i-num" value="${it.num}" oninput="salvarProgressoLocal()" placeholder="Nº"></td>
             <td><input type="number" class="i-qtd" value="${it.qtd}" oninput="salvarProgressoLocal()"></td>
-            <td><input type="text" class="i-adicional" value="${it.adic}" oninput="salvarProgressoLocal()"></td>
+            <td><input type="text" class="i-adicional" value="${it.adic}" oninput="salvarProgressoLocal()" placeholder="Conjunto"></td>
             <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarProgressoLocal()">✕</button></td>
         `;
         corpo.appendChild(tr);
     });
 }
 
-// --- FIM LOGICA LOCAL ---
+// --- FIM PERSISTÊNCIA ---
 
 async function carregarPerfil() {
     const identificador = obterEmailVendedor();
@@ -129,9 +133,13 @@ async function carregarPerfil() {
                 img.src = data.url_logo;
                 img.style.display = 'inline-block';
             }
+        } else {
+            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
         }
+    } else {
+        if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
-    // Em vez de adicionar grupo vazio direto, tentamos carregar o salvo
+    // Tenta carregar rascunho, se não houver, cria um vazio
     carregarProgressoLocal();
 }
 
@@ -213,6 +221,16 @@ function alternarTecidoManualGrupo(select) {
         ultimoTecidoManual = "";
     }
 }
+
+document.addEventListener('input', (e) => {
+    if (e.target.classList.contains('i-tec-manual')) {
+        ultimoTecidoManual = e.target.value;
+        salvarProgressoLocal();
+    }
+    if (['clienteNome', 'clienteTelefone', 'observacoesGerais'].includes(e.target.id)) {
+        salvarProgressoLocal();
+    }
+});
 
 function alternarCampoManual(select) {
     const campoManual = select.closest('.header-modelagem').querySelector('.i-mod-manual');
@@ -319,8 +337,28 @@ function enviarPedido() {
         return;
     }
 
+    const modal = document.getElementById('modal-conferencia');
     document.getElementById('resumo-pedido-html').innerHTML = resumoHtml;
-    document.getElementById('modal-conferencia').style.display = 'flex';
+    modal.style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function fecharConferencia() {
+    document.getElementById('modal-conferencia').style.display = 'none';
+}
+
+function prepararNovoPedido() {
+    localStorage.removeItem(CHAVE_LOCAL);
+    document.getElementById('clienteNome').value = "";
+    document.getElementById('clienteTelefone').value = "";
+    document.getElementById('observacoesGerais').value = "";
+    const container = document.getElementById('container-modelagens');
+    container.innerHTML = ""; 
+    ultimoTecidoSelecionado = "";
+    ultimoTecidoManual = "";
+    adicionarGrupoModelagem();
+    document.getElementById('tela-sucesso').style.display = 'none';
+    document.getElementById('formulario-pedido').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -371,7 +409,8 @@ async function confirmarEEnviar() {
                 const adicional = row.querySelector('.i-adicional').value.trim();
 
                 if (itemRaw !== "" || (tam !== "" && qtd !== "")) {
-                    conteudo += `${itemRaw.toUpperCase()};${tam};${num};${qtd};${adicional};${nomeMod};${tecidoFinal}\n`;
+                    const nomeItem = itemRaw ? itemRaw.toUpperCase() : "";
+                    conteudo += `${nomeItem};${tam};${num};${qtd};${adicional};${nomeMod};${tecidoFinal}\n`;
                 }
             });
         });
@@ -382,9 +421,7 @@ async function confirmarEEnviar() {
 
         if (error) throw error;
 
-        // LIMPAR RASCUNHO APÓS SUCESSO
         localStorage.removeItem(CHAVE_LOCAL);
-
         btnConfirmar.disabled = false;
         btnConfirmar.innerText = "✅ ENVIAR AGORA";
         document.getElementById('modal-conferencia').style.display = 'none';
@@ -397,24 +434,6 @@ async function confirmarEEnviar() {
         btnConfirmar.disabled = false;
         btnConfirmar.innerText = "✅ ENVIAR AGORA";
     }
-}
-
-function prepararNovoPedido() {
-    localStorage.removeItem(CHAVE_LOCAL);
-    document.getElementById('clienteNome').value = "";
-    document.getElementById('clienteTelefone').value = "";
-    document.getElementById('observacoesGerais').value = "";
-    document.getElementById('container-modelagens').innerHTML = ""; 
-    ultimoTecidoSelecionado = "";
-    ultimoTecidoManual = "";
-    adicionarGrupoModelagem();
-    document.getElementById('tela-sucesso').style.display = 'none';
-    document.getElementById('formulario-pedido').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function fecharConferencia() {
-    document.getElementById('modal-conferencia').style.display = 'none';
 }
 
 function voltarParaEditar() {
@@ -468,16 +487,9 @@ function enviarWhatsApp() {
 
     msg += div + "\n";
     msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
-    const linkZap = "https://wa.me/?text=" + encodeURIComponent(msg);
-    window.open(linkZap, '_blank');
+    msg += "Gerado via Portal de Pedidos";
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), '_blank');
 }
-
-// Ouvinte global para salvar campos de texto do topo
-document.addEventListener('input', (e) => {
-    if (['clienteNome', 'clienteTelefone', 'observacoesGerais'].includes(e.target.id)) {
-        salvarProgressoLocal();
-    }
-});
 
 // INICIALIZAÇÃO
 carregarPerfil();
