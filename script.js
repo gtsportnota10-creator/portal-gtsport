@@ -5,22 +5,110 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let listaModelagens = [];
 let listaTecidos = []; 
-
-// Variáveis de memória para manter o tecido selecionado no próximo grupo
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
+
+// CHAVE PARA PERSISTÊNCIA LOCAL
+const CHAVE_LOCAL = "GTBot_Rascunho_Pedido";
 
 function obterEmailVendedor() {
     const urlAtual = window.location.href;
     const params = new URLSearchParams(window.location.search);
     let vendedorId = params.get('id') || params.get('atendente');
-
     if (!vendedorId && urlAtual.includes('id=')) {
         vendedorId = urlAtual.split('id=')[1].split('&')[0];
     }
-
     return vendedorId ? vendedorId.trim().toLowerCase() : null;
 }
+
+// --- LOGICA DE SALVAMENTO LOCAL ---
+
+function salvarProgressoLocal() {
+    const dados = {
+        clienteNome: document.getElementById('clienteNome').value,
+        clienteTelefone: document.getElementById('clienteTelefone').value,
+        observacoesGerais: document.getElementById('observacoesGerais').value,
+        grupos: []
+    };
+
+    document.querySelectorAll('.grupo-modelagem').forEach(grupo => {
+        const itens = [];
+        grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(row => {
+            itens.push({
+                nome: row.querySelector('.i-nome').value,
+                tam: row.querySelector('.i-tam').value,
+                num: row.querySelector('.i-num').value,
+                qtd: row.querySelector('.i-qtd').value,
+                adic: row.querySelector('.i-adicional').value
+            });
+        });
+
+        dados.grupos.push({
+            tecido: grupo.querySelector('.i-tec-nome').value,
+            tecidoManual: grupo.querySelector('.i-tec-manual').value,
+            modelagem: grupo.querySelector('.i-mod-nome').value,
+            modelagemManual: grupo.querySelector('.i-mod-manual').value,
+            itens: itens
+        });
+    });
+
+    localStorage.setItem(CHAVE_LOCAL, JSON.stringify(dados));
+}
+
+function carregarProgressoLocal() {
+    const salvo = localStorage.getItem(CHAVE_LOCAL);
+    if (!salvo) {
+        adicionarGrupoModelagem();
+        return;
+    }
+
+    const dados = JSON.parse(salvo);
+    document.getElementById('clienteNome').value = dados.clienteNome || "";
+    document.getElementById('clienteTelefone').value = dados.clienteTelefone || "";
+    document.getElementById('observacoesGerais').value = dados.observacoesGerais || "";
+
+    if (dados.grupos && dados.grupos.length > 0) {
+        const container = document.getElementById('container-modelagens');
+        container.innerHTML = ""; 
+        dados.grupos.forEach(g => {
+            adicionarGrupoModelagemCompleto(g);
+        });
+    } else {
+        adicionarGrupoModelagem();
+    }
+}
+
+// Auxiliar para reconstruir grupos salvos
+function adicionarGrupoModelagemCompleto(dadosGrupo) {
+    adicionarGrupoModelagem();
+    const grupos = document.querySelectorAll('.grupo-modelagem');
+    const ultimo = grupos[grupos.length - 1];
+
+    ultimo.querySelector('.i-tec-nome').value = dadosGrupo.tecido;
+    ultimo.querySelector('.i-tec-manual').value = dadosGrupo.tecidoManual;
+    if(dadosGrupo.tecido === "OUTRA") ultimo.querySelector('.i-tec-manual').style.display = "block";
+
+    ultimo.querySelector('.i-mod-nome').value = dadosGrupo.modelagem;
+    ultimo.querySelector('.i-mod-manual').value = dadosGrupo.modelagemManual;
+    if(dadosGrupo.modelagem === "OUTRA") ultimo.querySelector('.i-mod-manual').style.display = "block";
+
+    const corpo = ultimo.querySelector('.corpo-tabela-itens');
+    corpo.innerHTML = "";
+    dadosGrupo.itens.forEach(it => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="i-nome" value="${it.nome}" oninput="salvarProgressoLocal()"></td>
+            <td><input type="text" class="i-tam" value="${it.tam}" oninput="this.value = this.value.toUpperCase(); salvarProgressoLocal()"></td>
+            <td><input type="text" class="i-num" value="${it.num}" oninput="salvarProgressoLocal()"></td>
+            <td><input type="number" class="i-qtd" value="${it.qtd}" oninput="salvarProgressoLocal()"></td>
+            <td><input type="text" class="i-adicional" value="${it.adic}" oninput="salvarProgressoLocal()"></td>
+            <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarProgressoLocal()">✕</button></td>
+        `;
+        corpo.appendChild(tr);
+    });
+}
+
+// --- FIM LOGICA LOCAL ---
 
 async function carregarPerfil() {
     const identificador = obterEmailVendedor();
@@ -34,25 +122,19 @@ async function carregarPerfil() {
         if (data) {
             if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
             if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
-            
             if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
             if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
-            
             const img = document.getElementById('logo-empresa');
             if (data.url_logo && img) {
                 img.src = data.url_logo;
                 img.style.display = 'inline-block';
             }
-        } else {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
         }
-    } else {
-        if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
-    adicionarGrupoModelagem();
+    // Em vez de adicionar grupo vazio direto, tentamos carregar o salvo
+    carregarProgressoLocal();
 }
 
-// Gera o HTML das opções de tecido respeitando a memória da última escolha
 function gerarOpcoesTecido() {
     let html = '<option value="">Selecione o tecido...</option>';
     listaTecidos.forEach(tec => {
@@ -68,8 +150,6 @@ function gerarOpcoesTecido() {
 
 function adicionarGrupoModelagem() {
     const container = document.getElementById('container-modelagens');
-    
-    // Preparar Modelagens
     let opcoesModHtml = '<option value="">Selecione a modelagem...</option>';
     listaModelagens.forEach(mod => {
         opcoesModHtml += `<option value="${mod}">${mod}</option>`;
@@ -82,22 +162,21 @@ function adicionarGrupoModelagem() {
         <div class="header-modelagem">
             <div class="campo" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
                 <label class="label-modelagem">Tecido / Material</label>
-                <select class="i-tec-nome" onchange="alternarTecidoManualGrupo(this)" style="font-weight: bold;">
+                <select class="i-tec-nome" onchange="alternarTecidoManualGrupo(this); salvarProgressoLocal()" style="font-weight: bold;">
                     ${gerarOpcoesTecido()}
                 </select>
-                <input type="text" class="i-tec-manual" placeholder="Qual o nome do tecido?" 
+                <input type="text" class="i-tec-manual" oninput="salvarProgressoLocal()" placeholder="Qual o nome do tecido?" 
                        value="${ultimoTecidoManual}"
                        style="display:${ultimoTecidoSelecionado === 'OUTRA' ? 'block' : 'none'}; margin-top: 10px; border-style: dashed; border-color: #3b82f6;">
             </div>
-
             <label class="label-modelagem">Modelagem</label>
             <div class="row-modelagem">
-                <select class="i-mod-nome" onchange="alternarCampoManual(this)" style="font-weight: bold;">
+                <select class="i-mod-nome" onchange="alternarCampoManual(this); salvarProgressoLocal()" style="font-weight: bold;">
                     ${opcoesModHtml}
                 </select>
-                <button type="button" class="btn-del-header" onclick="this.closest('.grupo-modelagem').remove()">✕</button>
+                <button type="button" class="btn-del-header" onclick="this.closest('.grupo-modelagem').remove(); salvarProgressoLocal()">✕</button>
             </div>
-            <input type="text" class="i-mod-manual" placeholder="Qual o nome da modelagem?" 
+            <input type="text" class="i-mod-manual" oninput="salvarProgressoLocal()" placeholder="Qual o nome da modelagem?" 
                    style="display:none; margin-top: 10px; border-style: dashed; border-color: #3b82f6;">
         </div>
         <div class="tabela-wrapper">
@@ -125,7 +204,6 @@ function alternarTecidoManualGrupo(select) {
     const grupo = select.closest('.grupo-modelagem');
     const campoManual = grupo.querySelector('.i-tec-manual');
     ultimoTecidoSelecionado = select.value;
-
     if (select.value === "OUTRA") {
         campoManual.style.display = "block";
         campoManual.focus();
@@ -135,13 +213,6 @@ function alternarTecidoManualGrupo(select) {
         ultimoTecidoManual = "";
     }
 }
-
-// Monitora digitação manual para salvar na memória
-document.addEventListener('input', (e) => {
-    if (e.target.classList.contains('i-tec-manual')) {
-        ultimoTecidoManual = e.target.value;
-    }
-});
 
 function alternarCampoManual(select) {
     const campoManual = select.closest('.header-modelagem').querySelector('.i-mod-manual');
@@ -158,14 +229,15 @@ function adicionarLinhaItem(botao) {
     const corpo = botao.closest('.grupo-modelagem').querySelector('.corpo-tabela-itens');
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td><input type="text" class="i-nome" placeholder="Nome"></td>
-        <td><input type="text" class="i-tam" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-        <td><input type="text" class="i-num" placeholder="Nº"></td>
-        <td><input type="number" class="i-qtd" value="1"></td>
-        <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
-        <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>
+        <td><input type="text" class="i-nome" oninput="salvarProgressoLocal()" placeholder="Nome"></td>
+        <td><input type="text" class="i-tam" oninput="this.value = this.value.toUpperCase(); salvarProgressoLocal()" placeholder="G"></td>
+        <td><input type="text" class="i-num" oninput="salvarProgressoLocal()" placeholder="Nº"></td>
+        <td><input type="number" class="i-qtd" oninput="salvarProgressoLocal()" value="1"></td>
+        <td><input type="text" class="i-adicional" oninput="salvarProgressoLocal()" placeholder="Conjunto"></td>
+        <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarProgressoLocal()">✕</button></td>
     `;
     corpo.appendChild(tr);
+    salvarProgressoLocal();
 }
 
 function enviarPedido() {
@@ -178,7 +250,6 @@ function enviarPedido() {
         return;
     }
 
-    // Parte superior: Dados do Cliente com ícones
     let resumoHtml = `
         <div style="margin-bottom: 15px; padding-left: 5px;">
             <p style="margin: 4px 0;"><strong> Cliente:</strong> ${nome.toUpperCase()}</p>
@@ -195,12 +266,10 @@ function enviarPedido() {
         const selectTec = grupo.querySelector('.i-tec-nome');
         const inputTecManual = grupo.querySelector('.i-tec-manual');
         let tecido = (selectTec.value === "OUTRA") ? inputTecManual.value : selectTec.value;
-        
         const selectMod = grupo.querySelector('.i-mod-nome');
         const inputModManual = grupo.querySelector('.i-mod-manual');
         let modelagem = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
 
-        // Cabeçalho do Grupo e abertura da tabela com títulos em CAIXA ALTA
         resumoHtml += `
             <div class="resumo-header-grupo">
                 <span style="font-weight: 800; color: #1e3a8a;">${(modelagem || 'MODELAGEM').toUpperCase()}</span>
@@ -228,8 +297,6 @@ function enviarPedido() {
 
             if (item || tam) {
                 temItemValido = true;
-                
-                // Se não tem nome, adiciona o rótulo "TAM:" para não ficar vazio
                 const displayItem = item 
                     ? `<strong>${item.toUpperCase()}</strong> <span class="badge-tamanho">${tam}</span>`
                     : `<span style="color:#64748b; font-size:11px;">TAM:</span> <span class="badge-tamanho">${tam}</span>`;
@@ -244,7 +311,6 @@ function enviarPedido() {
                 `;
             }
         });
-
         resumoHtml += `</tbody></table></div>`;
     });
 
@@ -253,44 +319,13 @@ function enviarPedido() {
         return;
     }
 
-    // Alimenta o modal e exibe
-    const modal = document.getElementById('modal-conferencia');
     document.getElementById('resumo-pedido-html').innerHTML = resumoHtml;
-    modal.style.display = 'flex';
+    document.getElementById('modal-conferencia').style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-function fecharConferencia() {
-    document.getElementById('modal-conferencia').style.display = 'none';
-}
-function prepararNovoPedido() {
-    // 1. Limpa Cabeçalho
-    document.getElementById('clienteNome').value = "";
-    document.getElementById('clienteTelefone').value = "";
-    document.getElementById('observacoesGerais').value = "";
-
-    // 2. Reseta as Modelagens
-    const container = document.getElementById('container-modelagens');
-    container.innerHTML = ""; // Remove tudo
-    
-    // Limpa a memória do último tecido para começar do zero
-    ultimoTecidoSelecionado = "";
-    ultimoTecidoManual = "";
-
-    // 3. Adiciona o primeiro grupo vazio novamente
-    adicionarGrupoModelagem();
-
-    // 4. Alterna as telas
-    document.getElementById('tela-sucesso').style.display = 'none';
-    document.getElementById('formulario-pedido').style.display = 'block';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 
 async function confirmarEEnviar() {
     const btnConfirmar = document.querySelector('#modal-conferencia .btn-main-green');
-    
     if (!btnConfirmar) return;
 
     btnConfirmar.disabled = true;
@@ -303,14 +338,12 @@ async function confirmarEEnviar() {
 
     try {
         let emailReal = "vendedor_geral@sistema.com"; 
-        
         if (identificador) {
             const { data: perfil } = await _supabase
                 .from('perfis_usuarios')
                 .select('email_usuario')
                 .ilike('email_usuario', `%${identificador}%`)
                 .maybeSingle();
-            
             if (perfil) emailReal = perfil.email_usuario;
             else emailReal = identificador;
         }
@@ -319,8 +352,7 @@ async function confirmarEEnviar() {
         conteudo += `TELEFONE;${fone}\n`;
         conteudo += `OBS;${obsGerais}\n`;
 
-        const grupos = document.querySelectorAll('.grupo-modelagem');
-        grupos.forEach(grupo => {
+        document.querySelectorAll('.grupo-modelagem').forEach(grupo => {
             const selectTec = grupo.querySelector('.i-tec-nome');
             const inputTecManual = grupo.querySelector('.i-tec-manual');
             let tecidoFinal = (selectTec.value === "OUTRA") ? inputTecManual.value : selectTec.value;
@@ -339,61 +371,62 @@ async function confirmarEEnviar() {
                 const adicional = row.querySelector('.i-adicional').value.trim();
 
                 if (itemRaw !== "" || (tam !== "" && qtd !== "")) {
-                    const nomeItem = itemRaw ? itemRaw.toUpperCase() : "";
-                    conteudo += `${nomeItem};${tam};${num};${qtd};${adicional};${nomeMod};${tecidoFinal}\n`;
+                    conteudo += `${itemRaw.toUpperCase()};${tam};${num};${qtd};${adicional};${nomeMod};${tecidoFinal}\n`;
                 }
             });
         });
 
-        // ENVIO PARA O SUPABASE
         const { error } = await _supabase
             .from('pedidos_clientes')
-            .insert([{ 
-                cliente_email: emailReal, 
-                conteudo_texto: conteudo, 
-                status: 'pendente' 
-            }]);
+            .insert([{ cliente_email: emailReal, conteudo_texto: conteudo, status: 'pendente' }]);
 
         if (error) throw error;
 
-        // --- SUCESSO ---
-        // Destravamos o botão para caso o usuário volte para editar depois
+        // LIMPAR RASCUNHO APÓS SUCESSO
+        localStorage.removeItem(CHAVE_LOCAL);
+
         btnConfirmar.disabled = false;
         btnConfirmar.innerText = "✅ ENVIAR AGORA";
-
-        // Transição de telas
         document.getElementById('modal-conferencia').style.display = 'none';
         document.getElementById('formulario-pedido').style.display = 'none';
         document.getElementById('tela-sucesso').style.display = 'block';
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
-        console.error("Erro Supabase:", err);
         alert("Erro ao enviar pedido. Verifique sua conexão.");
         btnConfirmar.disabled = false;
         btnConfirmar.innerText = "✅ ENVIAR AGORA";
     }
 }
 
-
-function voltarParaEditar() {
-    // Esconde a tela de sucesso
+function prepararNovoPedido() {
+    localStorage.removeItem(CHAVE_LOCAL);
+    document.getElementById('clienteNome').value = "";
+    document.getElementById('clienteTelefone').value = "";
+    document.getElementById('observacoesGerais').value = "";
+    document.getElementById('container-modelagens').innerHTML = ""; 
+    ultimoTecidoSelecionado = "";
+    ultimoTecidoManual = "";
+    adicionarGrupoModelagem();
     document.getElementById('tela-sucesso').style.display = 'none';
-    
-    // Mostra o formulário de pedido novamente com os dados preservados
     document.getElementById('formulario-pedido').style.display = 'block';
-    
-    // Rola a página suavemente para o início
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function fecharConferencia() {
+    document.getElementById('modal-conferencia').style.display = 'none';
+}
+
+function voltarParaEditar() {
+    document.getElementById('tela-sucesso').style.display = 'none';
+    document.getElementById('formulario-pedido').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 function enviarWhatsApp() {
     const nome = document.getElementById('clienteNome').value.trim().toUpperCase();
     const obsGerais = document.getElementById('observacoesGerais').value.trim();
     const empresa = document.getElementById('nome-empresa').innerText;
-
     let totalGeralPeças = 0;
     const div = "------------------------------------------";
 
@@ -403,12 +436,10 @@ function enviarWhatsApp() {
     if (obsGerais) msg += "OBS: " + obsGerais + "\n";
     msg += div + "\n\n";
 
-    const grupos = document.querySelectorAll('.grupo-modelagem');
-    grupos.forEach(function(grupo) {
+    document.querySelectorAll('.grupo-modelagem').forEach(function(grupo) {
         const selectTec = grupo.querySelector('.i-tec-nome');
         const inputTecManual = grupo.querySelector('.i-tec-manual');
         let tecido = (selectTec.value === "OUTRA") ? inputTecManual.value : selectTec.value;
-        
         const selectMod = grupo.querySelector('.i-mod-nome');
         const inputModManual = grupo.querySelector('.i-mod-manual');
         let modelagem = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
@@ -420,20 +451,15 @@ function enviarWhatsApp() {
             const item = row.querySelector('.i-nome').value.trim().toUpperCase();
             const tam = row.querySelector('.i-tam').value.trim().toUpperCase();
             const num = row.querySelector('.i-num').value.trim();
-            const qtdInput = row.querySelector('.i-qtd').value;
-            const qtd = parseInt(qtdInput) || 0;
+            const qtd = parseInt(row.querySelector('.i-qtd').value) || 0;
             const adicional = row.querySelector('.i-adicional').value.trim();
 
             if (item || tam || qtd > 0) {
                 totalGeralPeças += qtd;
-                
-                // Formatação solicitada: > 1 un. - M - GILSON (N 99) [Camisa]
                 let linha = " > " + qtd + " un. - " + (tam || "S/T");
-                
                 if (item) linha += " - " + item;
                 if (num) linha += " (N " + num + ")";
                 if (adicional) linha += " [" + adicional + "]";
-                
                 msg += linha + "\n";
             }
         });
@@ -442,13 +468,16 @@ function enviarWhatsApp() {
 
     msg += div + "\n";
     msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
-    msg += "Gerado via Portal de Pedidos";
-
-    const textoFinal = encodeURIComponent(msg);
-    const linkZap = "https://wa.me/?text=" + textoFinal;
-
+    const linkZap = "https://wa.me/?text=" + encodeURIComponent(msg);
     window.open(linkZap, '_blank');
 }
+
+// Ouvinte global para salvar campos de texto do topo
+document.addEventListener('input', (e) => {
+    if (['clienteNome', 'clienteTelefone', 'observacoesGerais'].includes(e.target.id)) {
+        salvarProgressoLocal();
+    }
+});
 
 // INICIALIZAÇÃO
 carregarPerfil();
