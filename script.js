@@ -10,9 +10,6 @@ let listaTecidos = [];
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
 
-// CHAVE PARA PERSISTÊNCIA LOCAL
-const CHAVE_LOCAL = "GTBot_Rascunho_Pedido";
-
 function obterEmailVendedor() {
     const urlAtual = window.location.href;
     const params = new URLSearchParams(window.location.search);
@@ -22,8 +19,11 @@ function obterEmailVendedor() {
         vendedorId = urlAtual.split('id=')[1].split('&')[0];
     }
 
-    return vendedorId ? vendedorId.trim().toLowerCase() : null;
+    return vendedorId ? vendedorId.trim().toLowerCase() : "geral";
 }
+
+// CHAVE PARA PERSISTÊNCIA LOCAL (Agora dinâmica para isolar rascunhos por vendedor)
+const CHAVE_LOCAL = `GTBot_Rascunho_${obterEmailVendedor()}`;
 
 // --- FUNÇÕES DE PERSISTÊNCIA (LOCALSTORAGE) ---
 
@@ -75,7 +75,7 @@ function carregarProgressoLocal() {
         const container = document.getElementById('container-modelagens');
         container.innerHTML = ""; 
         dados.grupos.forEach(g => {
-            // Sincroniza as variáveis globais para o motor de renderização
+            // Sincroniza as variáveis globais antes de criar CADA grupo para não perder os dados
             ultimoTecidoSelecionado = g.tecido;
             ultimoTecidoManual = g.tecidoManual;
             adicionarGrupoModelagemSalva(g);
@@ -119,7 +119,7 @@ function adicionarGrupoModelagemSalva(dadosGrupo) {
 
 async function carregarPerfil() {
     const identificador = obterEmailVendedor();
-    if (identificador) {
+    if (identificador && identificador !== "geral") {
         try {
             const { data, error } = await _supabase
                 .from('perfis_usuarios')
@@ -142,10 +142,9 @@ async function carregarPerfil() {
             }
         } catch (e) { console.error(e); }
     } else {
-        if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
+        if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso";
     }
     
-    // CORREÇÃO: Chama o carregamento do rascunho apenas DEPOIS de preencher as listas do perfil
     carregarProgressoLocal();
 }
 
@@ -382,7 +381,7 @@ async function confirmarEEnviar() {
 
     try {
         let emailReal = "vendedor_geral@sistema.com"; 
-        if (identificador) {
+        if (identificador && identificador !== "geral") {
             const { data: perfil } = await _supabase
                 .from('perfis_usuarios')
                 .select('email_usuario')
