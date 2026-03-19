@@ -75,6 +75,9 @@ function carregarProgressoLocal() {
         const container = document.getElementById('container-modelagens');
         container.innerHTML = ""; 
         dados.grupos.forEach(g => {
+            // Sincroniza as variáveis globais para o motor de renderização
+            ultimoTecidoSelecionado = g.tecido;
+            ultimoTecidoManual = g.tecidoManual;
             adicionarGrupoModelagemSalva(g);
         });
     } else {
@@ -82,12 +85,12 @@ function carregarProgressoLocal() {
     }
 }
 
-// Função auxiliar para reconstruir grupos do LocalStorage mantendo sua estrutura
 function adicionarGrupoModelagemSalva(dadosGrupo) {
     adicionarGrupoModelagem();
     const grupos = document.querySelectorAll('.grupo-modelagem');
     const ultimo = grupos[grupos.length - 1];
 
+    // Define os valores nos campos após a criação do grupo
     ultimo.querySelector('.i-tec-nome').value = dadosGrupo.tecido;
     ultimo.querySelector('.i-tec-manual').value = dadosGrupo.tecidoManual;
     if(dadosGrupo.tecido === "OUTRA") ultimo.querySelector('.i-tec-manual').style.display = "block";
@@ -117,29 +120,32 @@ function adicionarGrupoModelagemSalva(dadosGrupo) {
 async function carregarPerfil() {
     const identificador = obterEmailVendedor();
     if (identificador) {
-        const { data, error } = await _supabase
-            .from('perfis_usuarios')
-            .select('*')
-            .ilike('email_usuario', `%${identificador}%`) 
-            .maybeSingle();
+        try {
+            const { data, error } = await _supabase
+                .from('perfis_usuarios')
+                .select('*')
+                .ilike('email_usuario', `%${identificador}%`) 
+                .maybeSingle();
 
-        if (data) {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
-            if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
-            if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
-            if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
-            const img = document.getElementById('logo-empresa');
-            if (data.url_logo && img) {
-                img.src = data.url_logo;
-                img.style.display = 'inline-block';
+            if (data) {
+                if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
+                if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
+                if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
+                if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
+                const img = document.getElementById('logo-empresa');
+                if (data.url_logo && img) {
+                    img.src = data.url_logo;
+                    img.style.display = 'inline-block';
+                }
+            } else {
+                if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
             }
-        } else {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
-        }
+        } catch (e) { console.error(e); }
     } else {
         if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
-    // Tenta carregar rascunho, se não houver, cria um vazio
+    
+    // CORREÇÃO: Chama o carregamento do rascunho apenas DEPOIS de preencher as listas do perfil
     carregarProgressoLocal();
 }
 
