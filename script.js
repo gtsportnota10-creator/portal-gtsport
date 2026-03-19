@@ -198,7 +198,8 @@ function adicionarGrupoModelagem() {
                 <select class="i-mod-nome" onchange="alternarCampoManual(this)" style="font-weight: bold;">
                     ${opcoesModHtml}
                 </select>
-                <button type="button" class="btn-del-header" onclick="this.closest('.grupo-modelagem').remove()">✕</button>
+               // Localize essa linha dentro da sua função adicionarGrupoModelagem:
+<button type="button" class="btn-del-header" onclick="this.closest('.grupo-modelagem').remove(); salvarProgressoLocal();">✕</button>
             </div>
             <input type="text" class="i-mod-manual" placeholder="Qual o nome da modelagem?" 
                    style="display:none; margin-top: 10px; border-style: dashed; border-color: #3b82f6;">
@@ -258,17 +259,18 @@ function alternarCampoManual(select) {
 }
 
 function adicionarLinhaItem(botao) {
-    const corpo = botao.closest('.grupo-modelagem').querySelector('.corpo-tabela-itens');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" class="i-nome" placeholder="Nome"></td>
-        <td><input type="text" class="i-tam" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-        <td><input type="text" class="i-num" placeholder="Nº"></td>
-        <td><input type="number" class="i-qtd" value="1"></td>
-        <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
-        <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>
-    `;
-    corpo.appendChild(tr);
+    const corpo = botao.closest('.grupo-modelagem').querySelector('.corpo-tabela-itens');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="i-nome" placeholder="Nome"></td>
+        <td><input type="text" class="i-tam" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+        <td><input type="text" class="i-num" placeholder="Nº"></td>
+        <td><input type="number" class="i-qtd" value="1"></td>
+        <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
+        <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarProgressoLocal();">✕</button></td>
+    `;
+    corpo.appendChild(tr);
+    salvarProgressoLocal(); // Salva também ao adicionar a linha
 }
 
 function enviarPedido() {
