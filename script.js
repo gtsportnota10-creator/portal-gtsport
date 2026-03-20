@@ -607,36 +607,37 @@ function restaurarRascunho() {
     }
 }
 
+// 1. Chama o modal em vez do confirm do navegador
 function limparItensMantendoCliente() {
-    // 1. Confirmação de segurança
-    if (!confirm("Deseja apagar todos os itens e observações? \n\n(Nome e Telefone serão mantidos)")) {
-        return;
-    }
+    document.getElementById('modal-limpar-confirmacao').style.display = 'flex';
+}
 
-    // 2. LIMPA AS OBSERVAÇÕES GERAIS (O que você pediu)
+// 2. Fecha o modal se o usuário desistir
+function fecharModalLimpar() {
+    document.getElementById('modal-limpar-confirmacao').style.display = 'none';
+}
+
+// 3. Ação real de limpeza (roda quando clica em "Sim, Limpar")
+function executarLimpezaTotal() {
+    // Limpa Observações
     const campoObs = document.getElementById('observacoesGerais');
-    if (campoObs) {
-        campoObs.value = ""; 
-    }
+    if (campoObs) campoObs.value = ""; 
 
-    // 3. Limpa o container de itens/modelagens
+    // Limpa Itens
     const container = document.getElementById('container-modelagens');
-    if (container) {
-        container.innerHTML = ""; 
-    }
+    if (container) container.innerHTML = ""; 
 
-    // 4. Reseta memórias de tecidos
+    // Reseta memórias e cria novo grupo
     ultimoTecidoSelecionado = "";
     ultimoTecidoManual = "";
-
-    // 5. Cria o primeiro grupo vazio com uma linha de item pronta
     adicionarGrupoModelagem(true);
 
-    // 6. Atualiza o rascunho no localStorage imediatamente
+    // Salva e fecha
     salvarRascunho();
-
-    // 7. Feedback visual: volta para o início da tabela
-    window.scrollTo({ top: 200, behavior: 'smooth' });
+    fecharModalLimpar();
+    
+    // Rola para o topo do formulário
+    window.scrollTo({ top: 150, behavior: 'smooth' });
 }
 // INICIALIZAÇÃO
 carregarPerfil();
