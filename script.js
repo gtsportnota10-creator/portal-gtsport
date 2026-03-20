@@ -61,24 +61,27 @@ async function carregarPerfil() {
         if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
 
+    // --- DENTRO DA carregarPerfil ---
+// Localize esta parte no final da função e inverta a ordem como abaixo:
+
     const rascunhoSalvo = localStorage.getItem('rascunho_pedido');
 
     if (rascunhoSalvo) {
+        console.log("Rascunho encontrado, restaurando...");
+        restaurarRascunho(); // Primeiro restaura os dados (mesmo que em background)
+
         const dadosRascunho = JSON.parse(rascunhoSalvo);
-        
         if (dadosRascunho.status === 'enviado_com_sucesso') {
             document.getElementById('formulario-pedido').style.display = 'none';
             document.getElementById('tela-sucesso').style.display = 'block';
             carregandoRascunho = false;
             const loading = document.getElementById('loading-inicial');
             if(loading) loading.style.display = 'none';
-            return; 
+            return; // Agora sim, ele para aqui, mas com os dados já carregados no DOM
         }
-        console.log("Rascunho encontrado, restaurando...");
-        restaurarRascunho();
     } else {
         adicionarGrupoModelagem();
-    } // <-- FALTAVA ESTA CHAVE
+    }
 
     setTimeout(() => {
         carregandoRascunho = false;
@@ -214,7 +217,8 @@ function adicionarLinhaItem(botao) {
         <td><input type="text" class="i-num" placeholder="Nº"></td>
         <td><input type="number" class="i-qtd" value="1"></td>
         <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
-        <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
+        
+<td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
     `;
     corpo.appendChild(tr);
 
@@ -413,12 +417,15 @@ async function confirmarEEnviar() {
                 status: 'pendente' 
             }]);
        
-        // Ache essa parte no seu confirmarEEnviar:
+// ... dentro do try da confirmarEEnviar ...
 if (error) throw error;
 
-// EM VEZ DE: localStorage.removeItem('rascunho_pedido');
-// USE ISSO:
-localStorage.setItem('rascunho_pedido', JSON.stringify({ status: 'enviado_com_sucesso' }));
+// Pegamos o que já existe para não perder os dados dos grupos
+const rascunhoParaSalvar = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
+rascunhoParaSalvar.status = 'enviado_com_sucesso'; 
+
+// Salva com o status para a tela de sucesso persistir no Refresh
+localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
 
 
 
@@ -441,15 +448,24 @@ localStorage.setItem('rascunho_pedido', JSON.stringify({ status: 'enviado_com_su
     }
 }
 
-
 function voltarParaEditar() {
-    // Esconde a tela de sucesso
+    carregandoRascunho = true; // Trava o salvamento enquanto limpa
+
+    const rascunhoAtual = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
+    if (rascunhoAtual.status) {
+        delete rascunhoAtual.status;
+        localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoAtual));
+    }
+
+    // Mostra as telas
     document.getElementById('tela-sucesso').style.display = 'none';
-    
-    // Mostra o formulário de pedido novamente com os dados preservados
     document.getElementById('formulario-pedido').style.display = 'block';
     
-    // Rola a página suavemente para o início
+    // Pequeno delay para garantir que o DOM está pronto antes de liberar o salvamento
+    setTimeout(() => {
+        carregandoRascunho = false;
+    }, 500);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -569,54 +585,61 @@ function restaurarRascunho() {
 
     const container = document.getElementById('container-modelagens');
     if (!container) return;
+    
+    // Limpa o container para reconstruir
     container.innerHTML = "";
 
-    if (rascunho.grupos) {
-        rascunho.grupos.forEach((g) => {
-            // Criamos o grupo sem a linha padrão para não duplicar
-            adicionarGrupoModelagem(false); 
-            
-            const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
-            const ultimoGrupo = gruposNoDOM[gruposNoDOM.length - 1];
-
-            // Forçamos o valor do Tecido e Modelagem (mesmo que a lista demore, o valor fica lá)
-            const selTec = ultimoGrupo.querySelector('.i-tec-nome');
-            const selMod = ultimoGrupo.querySelector('.i-mod-nome');
-            
-            if(selTec) selTec.value = g.tecido || "";
-            if(selMod) selMod.value = g.modelagem || "";
-            
-            // Restaurar campos manuais e visibilidade
-            const inpTecM = ultimoGrupo.querySelector('.i-tec-manual');
-            const inpModM = ultimoGrupo.querySelector('.i-mod-manual');
-            
-            if(inpTecM) {
-                inpTecM.value = g.tecidoManual || "";
-                inpTecM.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
-            }
-            if(inpModM) {
-                inpModM.value = g.modelagemManual || "";
-                inpModM.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
-            }
-
-            // AGORA OS ITENS: Reconstrução direta na tabela
-            const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
-            if (corpoTabela && g.itens) {
-                g.itens.forEach(it => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
-                        <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-                        <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
-                        <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
-                        <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
-                        <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
-                    `;
-                    corpoTabela.appendChild(tr);
-                });
-            }
-        });
+    // SEGURANÇA: Se o rascunho não tem grupos, adiciona um vazio e para por aqui
+    if (!rascunho.grupos || rascunho.grupos.length === 0) {
+        adicionarGrupoModelagem(true);
+        return;
     }
+
+    // Se tem grupos, reconstrói um por um
+    rascunho.grupos.forEach((g) => {
+        // Criamos o grupo sem a linha padrão para inserir os dados do rascunho
+        adicionarGrupoModelagem(false); 
+        
+        const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
+        const ultimoGrupo = gruposNoDOM[gruposNoDOM.length - 1];
+
+        // Seletores
+        const selTec = ultimoGrupo.querySelector('.i-tec-nome');
+        const selMod = ultimoGrupo.querySelector('.i-mod-nome');
+        const inpTecM = ultimoGrupo.querySelector('.i-tec-manual');
+        const inpModM = ultimoGrupo.querySelector('.i-mod-manual');
+        
+        // Aplica os valores dos Selects
+        if(selTec) selTec.value = g.tecido || "";
+        if(selMod) selMod.value = g.modelagem || "";
+        
+        // Restaura campos manuais (Outros) e a visibilidade deles
+        if(inpTecM) {
+            inpTecM.value = g.tecidoManual || "";
+            inpTecM.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
+        }
+        if(inpModM) {
+            inpModM.value = g.modelagemManual || "";
+            inpModM.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
+        }
+
+        // Reconstrói as linhas da tabela deste grupo
+        const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
+        if (corpoTabela && g.itens) {
+            g.itens.forEach(it => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
+                    <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+                    <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
+                    <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
+                    <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
+                    <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
+                `;
+                corpoTabela.appendChild(tr);
+            });
+        }
+    });
 }
 
 // 1. Chama o modal em vez do confirm do navegador
