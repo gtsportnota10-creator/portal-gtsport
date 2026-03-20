@@ -49,8 +49,16 @@ async function carregarPerfil() {
     } else {
         if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
-    adicionarGrupoModelagem();
-}
+
+    // Lógica do Rascunho
+    if (sessionStorage.getItem('rascunho_pedido')) {
+        restaurarRascunho();
+    } else {
+        adicionarGrupoModelagem();
+    }
+} // <--- ESTA CHAVE É A QUE FALTAVA PARA FECHAR A FUNÇÃO!
+    
+ 
 
 // Gera o HTML das opções de tecido respeitando a memória da última escolha
 function gerarOpcoesTecido() {
@@ -136,11 +144,19 @@ function alternarTecidoManualGrupo(select) {
     }
 }
 
-// Monitora digitação manual para salvar na memória
+// Monitora QUALQUER digitação ou mudança no formulário para salvar o rascunho
 document.addEventListener('input', (e) => {
+    // Lógica antiga do tecido manual (mantida)
     if (e.target.classList.contains('i-tec-manual')) {
         ultimoTecidoManual = e.target.value;
     }
+    // NOVO: Salva tudo no sessionStorage
+    salvarRascunho();
+});
+
+// Monitora mudanças em Selects (que não disparam 'input' em alguns navegadores)
+document.addEventListener('change', (e) => {
+    salvarRascunho();
 });
 
 function alternarCampoManual(select) {
@@ -166,6 +182,7 @@ function adicionarLinhaItem(botao) {
         <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>
     `;
     corpo.appendChild(tr);
+    salvarRascunho(); // <--- ADICIONE ESSA LINHA AQUI
 }
 
 function enviarPedido() {
@@ -285,6 +302,7 @@ function prepararNovoPedido() {
     document.getElementById('formulario-pedido').style.display = 'block';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    sessionStorage.removeItem('rascunho_pedido');
 }
 
 
@@ -353,9 +371,9 @@ async function confirmarEEnviar() {
                 conteudo_texto: conteudo, 
                 status: 'pendente' 
             }]);
-
+       
         if (error) throw error;
-
+       sessionStorage.removeItem('rascunho_pedido');
         // --- SUCESSO ---
         // Destravamos o botão para caso o usuário volte para editar depois
         btnConfirmar.disabled = false;
@@ -448,6 +466,92 @@ function enviarWhatsApp() {
     const linkZap = "https://wa.me/?text=" + textoFinal;
 
     window.open(linkZap, '_blank');
+}
+
+// --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
+
+function salvarRascunho() {
+    const rascunho = {
+        clienteNome: document.getElementById('clienteNome')?.value || "",
+        clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
+        observacoesGerais: document.getElementById('observacoesGerais')?.value || "",
+        grupos: []
+    };
+
+    const grupos = document.querySelectorAll('.grupo-modelagem');
+    grupos.forEach(grupo => {
+        const dadosGrupo = {
+            tecido: grupo.querySelector('.i-tec-nome').value,
+            tecidoManual: grupo.querySelector('.i-tec-manual').value,
+            modelagem: grupo.querySelector('.i-mod-nome').value,
+            modelagemManual: grupo.querySelector('.i-mod-manual').value,
+            itens: []
+        };
+
+        grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(row => {
+            dadosGrupo.itens.push({
+                nome: row.querySelector('.i-nome').value,
+                tam: row.querySelector('.i-tam').value,
+                num: row.querySelector('.i-num').value,
+                qtd: row.querySelector('.i-qtd').value,
+                adicional: row.querySelector('.i-adicional').value
+            });
+        });
+        rascunho.grupos.push(dadosGrupo);
+    });
+
+    sessionStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
+}
+
+function restaurarRascunho() {
+    const dadosSalvos = sessionStorage.getItem('rascunho_pedido');
+    if (!dadosSalvos) return;
+
+    const rascunho = JSON.parse(dadosSalvos);
+
+    // Restaurar cabeçalho
+    if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome;
+    if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone;
+    if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais;
+
+    // Limpar container e reconstruir grupos
+    const container = document.getElementById('container-modelagens');
+    container.innerHTML = "";
+
+    rascunho.grupos.forEach((g, index) => {
+        adicionarGrupoModelagem();
+        const gruposHtml = document.querySelectorAll('.grupo-modelagem');
+        const ultimoGrupo = gruposHtml[gruposHtml.length - 1];
+
+        // Preencher selects e inputs do grupo
+        const selTec = ultimoGrupo.querySelector('.i-tec-nome');
+        const selMod = ultimoGrupo.querySelector('.i-mod-nome');
+        
+        selTec.value = g.tecido;
+        ultimoGrupo.querySelector('.i-tec-manual').value = g.tecidoManual;
+        ultimoGrupo.querySelector('.i-tec-manual').style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
+
+        selMod.value = g.modelagem;
+        ultimoGrupo.querySelector('.i-mod-manual').value = g.modelagemManual;
+        ultimoGrupo.querySelector('.i-mod-manual').style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
+
+        // Preencher itens da tabela
+        const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
+        corpoTabela.innerHTML = ""; // Limpa a linha padrão criada pelo adicionarGrupoModelagem
+
+        g.itens.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="i-nome" value="${it.nome}" placeholder="Nome"></td>
+                <td><input type="text" class="i-tam" value="${it.tam}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+                <td><input type="text" class="i-num" value="${it.num}" placeholder="Nº"></td>
+                <td><input type="number" class="i-qtd" value="${it.qtd}"></td>
+                <td><input type="text" class="i-adicional" value="${it.adicional}" placeholder="Conjunto"></td>
+                <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
+            `;
+            corpoTabela.appendChild(tr);
+        });
+    });
 }
 
 // INICIALIZAÇÃO
