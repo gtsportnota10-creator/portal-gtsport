@@ -74,7 +74,8 @@ function gerarOpcoesTecido() {
     return html;
 }
 
-function adicionarGrupoModelagem() {
+// Adicionamos o parâmetro "criarLinhaPadrao" que começa como true
+function adicionarGrupoModelagem(criarLinhaPadrao = true) {
     const container = document.getElementById('container-modelagens');
     
     // Preparar Modelagens
@@ -90,7 +91,7 @@ function adicionarGrupoModelagem() {
         <div class="header-modelagem">
             <div class="campo" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
                 <label class="label-modelagem">Tecido / Material</label>
-                <select class="i-tec-nome" onchange="alternarTecidoManualGrupo(this)" style="font-weight: bold;">
+                <select class="i-tec-nome" onchange="alternarTecidoManualGrupo(this); salvarRascunho();" style="font-weight: bold;">
                     ${gerarOpcoesTecido()}
                 </select>
                 <input type="text" class="i-tec-manual" placeholder="Qual o nome do tecido?" 
@@ -100,10 +101,10 @@ function adicionarGrupoModelagem() {
 
             <label class="label-modelagem">Modelagem</label>
             <div class="row-modelagem">
-                <select class="i-mod-nome" onchange="alternarCampoManual(this)" style="font-weight: bold;">
+                <select class="i-mod-nome" onchange="alternarCampoManual(this); salvarRascunho();" style="font-weight: bold;">
                     ${opcoesModHtml}
                 </select>
-                <button type="button" class="btn-del-header" onclick="this.closest('.grupo-modelagem').remove()">✕</button>
+                <button type="button" class="btn-del-header" onclick="this.closest('.grupo-modelagem').remove(); salvarRascunho();">✕</button>
             </div>
             <input type="text" class="i-mod-manual" placeholder="Qual o nome da modelagem?" 
                    style="display:none; margin-top: 10px; border-style: dashed; border-color: #3b82f6;">
@@ -126,8 +127,13 @@ function adicionarGrupoModelagem() {
         <button type="button" class="btn-add-item" onclick="adicionarLinhaItem(this)">+ Adicionar Item nesta Modelagem</button>
     `;
     container.appendChild(div);
-    adicionarLinhaItem(div.querySelector('.btn-add-item'));
-    // SALVA O RASCUNHO IMEDIATAMENTE APÓS CRIAR O GRUPO
+
+    // SÓ ADICIONA A LINHA SE NÃO ESTIVERMOS RESTAURANDO RASCUNHO
+    if (criarLinhaPadrao) {
+        adicionarLinhaItem(div.querySelector('.btn-add-item'));
+    }
+
+    // SALVA O RASCUNHO IMEDIATAMENTE (Agora dentro da função)
     salvarRascunho();
 }
 
@@ -520,8 +526,10 @@ function restaurarRascunho() {
     const container = document.getElementById('container-modelagens');
     container.innerHTML = "";
 
-    rascunho.grupos.forEach((g, index) => {
-        adicionarGrupoModelagem();
+    rascunho.grupos.forEach((g) => {
+        // IMPORTANTE: Passamos 'false' para criar o grupo limpo, sem a linha padrão
+        adicionarGrupoModelagem(false); 
+        
         const gruposHtml = document.querySelectorAll('.grupo-modelagem');
         const ultimoGrupo = gruposHtml[gruposHtml.length - 1];
 
@@ -539,22 +547,21 @@ function restaurarRascunho() {
 
         // Preencher itens da tabela
         const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
-        corpoTabela.innerHTML = ""; // Limpa a linha padrão criada pelo adicionarGrupoModelagem
+        corpoTabela.innerHTML = ""; // Garante que a tabela comece zerada
 
         g.itens.forEach(it => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="text" class="i-nome" value="${it.nome}" placeholder="Nome"></td>
-                <td><input type="text" class="i-tam" value="${it.tam}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-                <td><input type="text" class="i-num" value="${it.num}" placeholder="Nº"></td>
-                <td><input type="number" class="i-qtd" value="${it.qtd}"></td>
-                <td><input type="text" class="i-adicional" value="${it.adicional}" placeholder="Conjunto"></td>
+                <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
+                <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+                <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
+                <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
+                <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
                 <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
             `;
             corpoTabela.appendChild(tr);
         });
     });
 }
-
 // INICIALIZAÇÃO
 carregarPerfil();
