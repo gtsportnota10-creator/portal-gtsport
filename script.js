@@ -68,6 +68,16 @@ async function carregarPerfil() {
     // 2. RESTAURAÇÃO DO RASCUNHO (SÓ COMEÇA APÓS AS LISTAS ACIMA ESTAREM NA MEMÓRIA)
     const rascunhoSalvo = localStorage.getItem('rascunho_pedido');
     if (rascunhoSalvo) {
+        // --- ADIÇÃO DE PERSISTÊNCIA DE TELA DE SUCESSO ---
+        const dadosRascunho = JSON.parse(rascunhoSalvo);
+        if (dadosRascunho.status === 'enviado_com_sucesso') {
+            document.getElementById('formulario-pedido').style.display = 'none';
+            document.getElementById('tela-sucesso').style.display = 'block';
+            carregandoRascunho = false; // Libera a trava já na tela de sucesso
+            return; // Encerra aqui, pois o pedido já foi enviado
+        }
+        // ------------------------------------------------
+
         console.log("Rascunho encontrado, restaurando...");
         restaurarRascunho();
     } else {
@@ -407,10 +417,12 @@ async function confirmarEEnviar() {
             }]);
        
         if (error) throw error;
-      // No confirmarEEnviar e prepararNovoPedido, troque para:
-localStorage.removeItem('rascunho_pedido');
+
+        // --- ALTERAÇÃO AQUI PARA PERSISTIR A TELA DE SUCESSO ---
+        // Em vez de apenas remover, salvamos o estado de sucesso no rascunho
+        localStorage.setItem('rascunho_pedido', JSON.stringify({ status: 'enviado_com_sucesso' }));
+
         // --- SUCESSO ---
-        // Destravamos o botão para caso o usuário volte para editar depois
         btnConfirmar.disabled = false;
         btnConfirmar.innerText = "✅ ENVIAR AGORA";
 
