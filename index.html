@@ -108,6 +108,17 @@
 </div>
     </div>
 </div>
-
+<div id="modal-limpar-confirmacao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:350px; border-radius:15px; padding:25px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="font-size: 40px; margin-bottom: 10px;">🗑️</div>
+        <h3 style="margin:0 0 10px 0; color:#1e293b; font-size:18px;">Limpar Pedido?</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:25px;">Deseja apagar todos os itens e observações? <br><b>(Nome e Telefone serão mantidos)</b></p>
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="fecharModalLimpar()" style="flex:1; padding:12px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; border-radius:10px; font-weight:600; cursor:pointer;">Cancelar</button>
+            <button onclick="executarLimpezaTotal()" style="flex:1; padding:12px; border:none; background:#ef4444; color:white; border-radius:10px; font-weight:600; cursor:pointer;">Sim, Limpar</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
