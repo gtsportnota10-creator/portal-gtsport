@@ -32,7 +32,7 @@ async function carregarPerfil() {
     
     const identificador = obterEmailVendedor();
     
-    // 1. BUSCA DADOS DO PERFIL (LOGOS E LISTAS DE TECIDOS/MODELAGENS)
+    // 1. BUSCA DADOS DO PERFIL
     if (identificador) {
         try {
             const { data, error } = await _supabase
@@ -42,11 +42,9 @@ async function carregarPerfil() {
                 .maybeSingle();
 
             if (data) {
-                // Preenche Nome e Logo
                 if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
                 if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
                 
-                // PREPARA AS LISTAS GLOBAIS (Fundamental para os itens aparecerem)
                 if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
                 if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
                 
@@ -66,29 +64,27 @@ async function carregarPerfil() {
     }
 
     // 2. RESTAURAÇÃO DO RASCUNHO
-const rascunhoSalvo = localStorage.getItem('rascunho_pedido');
+    const rascunhoSalvo = localStorage.getItem('rascunho_pedido');
 
-if (rascunhoSalvo) {
-    // --- ADICIONE ESTAS 7 LINHAS AQUI ---
-    const dadosRascunho = JSON.parse(rascunhoSalvo);
-    if (dadosRascunho.status === 'enviado_com_sucesso') {
-        document.getElementById('formulario-pedido').style.display = 'none';
-        document.getElementById('tela-sucesso').style.display = 'block';
-        carregandoRascunho = false;
-        return; 
-    }
-    // ------------------------------------
+    if (rascunhoSalvo) {
+        const dadosRascunho = JSON.parse(rascunhoSalvo);
+        
+        // Verifica se o status é sucesso para travar na tela de agradecimento
+        if (dadosRascunho.status === 'enviado_com_sucesso') {
+            document.getElementById('formulario-pedido').style.display = 'none';
+            document.getElementById('tela-sucesso').style.display = 'block';
+            carregandoRascunho = false;
+            return; // Encerra aqui
+        }
 
-    console.log("Rascunho encontrado, restaurando...");
-    restaurarRascunho();
-} else {
-    adicionarGrupoModelagem();
-}
-        // Se não tem rascunho, cria o primeiro grupo vazio padrão
+        console.log("Rascunho encontrado, restaurando...");
+        restaurarRascunho();
+    } else {
+        // Se não tem rascunho nenhum, cria o primeiro grupo vazio
         adicionarGrupoModelagem();
     }
 
-    // 3. LIBERAÇÃO DA TRAVA (Aumentado para 1.5s para garantir estabilidade no celular)
+    // 3. LIBERAÇÃO DA TRAVA
     setTimeout(() => {
         carregandoRascunho = false;
         console.log("Sistema pronto e salvamento liberado.");
