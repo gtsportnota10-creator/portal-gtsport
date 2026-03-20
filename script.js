@@ -68,7 +68,7 @@ async function carregarPerfil() {
     // Libera o salvamento após os itens serem montados na tela
     setTimeout(() => {
         carregandoRascunho = false;
-    }, 800); 
+    }, 1200); 
 }
 
 // Gera o HTML das opções de tecido respeitando a memória da última escolha
@@ -536,51 +536,63 @@ function restaurarRascunho() {
 
     const rascunho = JSON.parse(dadosSalvos);
 
-    // Restaurar cabeçalho
-    if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome;
-    if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone;
-    if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais;
+    // 1. Restaurar cabeçalho
+    if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome || "";
+    if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone || "";
+    if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais || "";
 
-    // Limpar container e reconstruir grupos
+    // 2. Limpar container para reconstruir do zero
     const container = document.getElementById('container-modelagens');
+    if (!container) return;
     container.innerHTML = "";
 
-    rascunho.grupos.forEach((g) => {
-        // IMPORTANTE: Passamos 'false' para criar o grupo limpo, sem a linha padrão
-        adicionarGrupoModelagem(false); 
-        
-        const gruposHtml = document.querySelectorAll('.grupo-modelagem');
-        const ultimoGrupo = gruposHtml[gruposHtml.length - 1];
+    // 3. Reconstruir Grupos
+    if (rascunho.grupos && rascunho.grupos.length > 0) {
+        rascunho.grupos.forEach((g) => {
+            // Cria o grupo sem a linha padrão de item
+            adicionarGrupoModelagem(false); 
+            
+            const gruposHtml = document.querySelectorAll('.grupo-modelagem');
+            const ultimoGrupo = gruposHtml[gruposHtml.length - 1];
 
-        // Preencher selects e inputs do grupo
-        const selTec = ultimoGrupo.querySelector('.i-tec-nome');
-        const selMod = ultimoGrupo.querySelector('.i-mod-nome');
-        
-        selTec.value = g.tecido;
-        ultimoGrupo.querySelector('.i-tec-manual').value = g.tecidoManual;
-        ultimoGrupo.querySelector('.i-tec-manual').style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
+            // Preencher selects e inputs do grupo
+            const selTec = ultimoGrupo.querySelector('.i-tec-nome');
+            const selMod = ultimoGrupo.querySelector('.i-mod-nome');
+            const inpTecManual = ultimoGrupo.querySelector('.i-tec-manual');
+            const inpModManual = ultimoGrupo.querySelector('.i-mod-manual');
+            
+            if(selTec) selTec.value = g.tecido || "";
+            if(inpTecManual) {
+                inpTecManual.value = g.tecidoManual || "";
+                inpTecManual.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
+            }
 
-        selMod.value = g.modelagem;
-        ultimoGrupo.querySelector('.i-mod-manual').value = g.modelagemManual;
-        ultimoGrupo.querySelector('.i-mod-manual').style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
+            if(selMod) selMod.value = g.modelagem || "";
+            if(inpModManual) {
+                inpModManual.value = g.modelagemManual || "";
+                inpModManual.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
+            }
 
-        // Preencher itens da tabela
-        const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
-        corpoTabela.innerHTML = ""; // Garante que a tabela comece zerada
-
-        g.itens.forEach(it => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
-                <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-                <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
-                <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
-                <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
-                <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
-            `;
-            corpoTabela.appendChild(tr);
+            // 4. Preencher a tabela de itens
+            const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
+            if (corpoTabela && g.itens) {
+                corpoTabela.innerHTML = ""; // Limpa qualquer resíduo
+                
+                g.itens.forEach(it => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
+                        <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+                        <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
+                        <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
+                        <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
+                        <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
+                    `;
+                    corpoTabela.appendChild(tr);
+                });
+            }
         });
-    });
+    }
 }
 // INICIALIZAÇÃO
 carregarPerfil();
