@@ -127,6 +127,8 @@ function adicionarGrupoModelagem() {
     `;
     container.appendChild(div);
     adicionarLinhaItem(div.querySelector('.btn-add-item'));
+    // SALVA O RASCUNHO IMEDIATAMENTE APÓS CRIAR O GRUPO
+    salvarRascunho();
 }
 
 function alternarTecidoManualGrupo(select) {
