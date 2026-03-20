@@ -26,7 +26,6 @@ function obterEmailVendedor() {
 
 
 
-// 2. A FUNÇÃO CARREGAR PERFIL ATUALIZADA (VERSÃO BLINDADA)
 async function carregarPerfil() {
     carregandoRascunho = true; // TRAVA o salvamento inicial
     
@@ -69,27 +68,32 @@ async function carregarPerfil() {
     if (rascunhoSalvo) {
         const dadosRascunho = JSON.parse(rascunhoSalvo);
         
-        // Verifica se o status é sucesso para travar na tela de agradecimento
+        // Verifica se deve travar na tela de sucesso
         if (dadosRascunho.status === 'enviado_com_sucesso') {
             document.getElementById('formulario-pedido').style.display = 'none';
             document.getElementById('tela-sucesso').style.display = 'block';
             carregandoRascunho = false;
-            return; // Encerra aqui
+            // IMPORTANTE: Aqui precisamos esconder o loading manualmente se o retorno for imediato
+            const loading = document.getElementById('loading-inicial');
+            if(loading) loading.style.display = 'none';
+            return; 
         }
 
         console.log("Rascunho encontrado, restaurando...");
         restaurarRascunho();
     } else {
-        // Se não tem rascunho nenhum, cria o primeiro grupo vazio
         adicionarGrupoModelagem();
     }
 
-    // 3. LIBERAÇÃO DA TRAVA
+    // 3. LIBERAÇÃO DA TRAVA E REMOÇÃO DO "CARREGANDO"
     setTimeout(() => {
         carregandoRascunho = false;
+        const loading = document.getElementById('loading-inicial');
+        if(loading) loading.style.display = 'none';
         console.log("Sistema pronto e salvamento liberado.");
     }, 1500); 
 }
+
 // Gera o HTML das opções de tecido respeitando a memória da última escolha
 function gerarOpcoesTecido() {
     let html = '<option value="">Selecione o tecido...</option>';
