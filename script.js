@@ -26,51 +26,61 @@ function obterEmailVendedor() {
 
 
 
-// 2. A FUNÇÃO CARREGAR PERFIL ATUALIZADA
+// 2. A FUNÇÃO CARREGAR PERFIL ATUALIZADA (VERSÃO BLINDADA)
 async function carregarPerfil() {
-    carregandoRascunho = true; // TRAVA o salvamento para não sobrescrever com tela vazia
+    carregandoRascunho = true; // TRAVA o salvamento inicial
     
     const identificador = obterEmailVendedor();
+    
+    // 1. BUSCA DADOS DO PERFIL (LOGOS E LISTAS DE TECIDOS/MODELAGENS)
     if (identificador) {
-        const { data, error } = await _supabase
-            .from('perfis_usuarios')
-            .select('*')
-            .ilike('email_usuario', `%${identificador}%`) 
-            .maybeSingle();
+        try {
+            const { data, error } = await _supabase
+                .from('perfis_usuarios')
+                .select('*')
+                .ilike('email_usuario', `%${identificador}%`) 
+                .maybeSingle();
 
-        if (data) {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
-            if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
-            
-            // GARANTE que as listas de tecidos e modelagens carreguem ANTES do rascunho
-            if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
-            if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
-            
-            const img = document.getElementById('logo-empresa');
-            if (data.url_logo && img) {
-                img.src = data.url_logo;
-                img.style.display = 'inline-block';
+            if (data) {
+                // Preenche Nome e Logo
+                if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
+                if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
+                
+                // PREPARA AS LISTAS GLOBAIS (Fundamental para os itens aparecerem)
+                if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
+                if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
+                
+                const img = document.getElementById('logo-empresa');
+                if (data.url_logo && img) {
+                    img.src = data.url_logo;
+                    img.style.display = 'inline-block';
+                }
+            } else {
+                if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
             }
-        } else {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
+        } catch (err) {
+            console.error("Erro ao carregar perfil:", err);
         }
     } else {
         if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
 
-    // Lógica do Rascunho usando LOCALSTORAGE (mais seguro para celular)
-    if (localStorage.getItem('rascunho_pedido')) {
+    // 2. RESTAURAÇÃO DO RASCUNHO (SÓ COMEÇA APÓS AS LISTAS ACIMA ESTAREM NA MEMÓRIA)
+    const rascunhoSalvo = localStorage.getItem('rascunho_pedido');
+    if (rascunhoSalvo) {
+        console.log("Rascunho encontrado, restaurando...");
         restaurarRascunho();
     } else {
+        // Se não tem rascunho, cria o primeiro grupo vazio padrão
         adicionarGrupoModelagem();
     }
 
-    // Libera o salvamento após os itens serem montados na tela
+    // 3. LIBERAÇÃO DA TRAVA (Aumentado para 1.5s para garantir estabilidade no celular)
     setTimeout(() => {
         carregandoRascunho = false;
-    }, 1200); 
+        console.log("Sistema pronto e salvamento liberado.");
+    }, 1500); 
 }
-
 // Gera o HTML das opções de tecido respeitando a memória da última escolha
 function gerarOpcoesTecido() {
     let html = '<option value="">Selecione o tecido...</option>';
@@ -84,10 +94,9 @@ function gerarOpcoesTecido() {
     html += `<option value="OUTRA" ${outSelected}>➕ Outro (Escrever manualmente)</option>`;
     return html;
 }
-
-// Adicionamos o parâmetro "criarLinhaPadrao" que começa como true
 function adicionarGrupoModelagem(criarLinhaPadrao = true) {
     const container = document.getElementById('container-modelagens');
+    if (!container) return; // Segurança contra erro de DOM
     
     // Preparar Modelagens
     let opcoesModHtml = '<option value="">Selecione a modelagem...</option>';
@@ -139,13 +148,14 @@ function adicionarGrupoModelagem(criarLinhaPadrao = true) {
     `;
     container.appendChild(div);
 
-    // SÓ ADICIONA A LINHA SE NÃO ESTIVERMOS RESTAURANDO RASCUNHO
     if (criarLinhaPadrao) {
         adicionarLinhaItem(div.querySelector('.btn-add-item'));
     }
 
-    // SALVA O RASCUNHO IMEDIATAMENTE (Agora dentro da função)
-    salvarRascunho();
+    // AJUSTE: Só salva se não estiver carregando o rascunho
+    if (!carregandoRascunho) {
+        salvarRascunho();
+    }
 }
 
 function alternarTecidoManualGrupo(select) {
@@ -163,13 +173,12 @@ function alternarTecidoManualGrupo(select) {
     }
 }
 
-// Monitora QUALQUER digitação ou mudança no formulário para salvar o rascunho
 document.addEventListener('input', (e) => {
-    // Lógica antiga do tecido manual (mantida)
+    if (carregandoRascunho) return; // Não salva enquanto o sistema preenche os campos sozinho
+    
     if (e.target.classList.contains('i-tec-manual')) {
         ultimoTecidoManual = e.target.value;
     }
-    // NOVO: Salva tudo no sessionStorage
     salvarRascunho();
 });
 
@@ -198,10 +207,15 @@ function adicionarLinhaItem(botao) {
         <td><input type="text" class="i-num" placeholder="Nº"></td>
         <td><input type="number" class="i-qtd" value="1"></td>
         <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
-        <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>
+        <td><button class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
     `;
     corpo.appendChild(tr);
-    salvarRascunho(); // <--- ADICIONE ESSA LINHA AQUI
+
+    // AJUSTE DE SEGURANÇA:
+    // Só dispara o salvamento se o usuário clicou no botão (não durante o carregamento)
+    if (!carregandoRascunho) {
+        salvarRascunho();
+    }
 }
 
 function enviarPedido() {
@@ -536,48 +550,46 @@ function restaurarRascunho() {
 
     const rascunho = JSON.parse(dadosSalvos);
 
-    // 1. Restaurar cabeçalho
+    // Restaurar campos de texto simples
     if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome || "";
     if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone || "";
     if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais || "";
 
-    // 2. Limpar container para reconstruir do zero
     const container = document.getElementById('container-modelagens');
     if (!container) return;
     container.innerHTML = "";
 
-    // 3. Reconstruir Grupos
-    if (rascunho.grupos && rascunho.grupos.length > 0) {
+    if (rascunho.grupos) {
         rascunho.grupos.forEach((g) => {
-            // Cria o grupo sem a linha padrão de item
+            // Criamos o grupo sem a linha padrão para não duplicar
             adicionarGrupoModelagem(false); 
             
-            const gruposHtml = document.querySelectorAll('.grupo-modelagem');
-            const ultimoGrupo = gruposHtml[gruposHtml.length - 1];
+            const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
+            const ultimoGrupo = gruposNoDOM[gruposNoDOM.length - 1];
 
-            // Preencher selects e inputs do grupo
+            // Forçamos o valor do Tecido e Modelagem (mesmo que a lista demore, o valor fica lá)
             const selTec = ultimoGrupo.querySelector('.i-tec-nome');
             const selMod = ultimoGrupo.querySelector('.i-mod-nome');
-            const inpTecManual = ultimoGrupo.querySelector('.i-tec-manual');
-            const inpModManual = ultimoGrupo.querySelector('.i-mod-manual');
             
             if(selTec) selTec.value = g.tecido || "";
-            if(inpTecManual) {
-                inpTecManual.value = g.tecidoManual || "";
-                inpTecManual.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
-            }
-
             if(selMod) selMod.value = g.modelagem || "";
-            if(inpModManual) {
-                inpModManual.value = g.modelagemManual || "";
-                inpModManual.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
+            
+            // Restaurar campos manuais e visibilidade
+            const inpTecM = ultimoGrupo.querySelector('.i-tec-manual');
+            const inpModM = ultimoGrupo.querySelector('.i-mod-manual');
+            
+            if(inpTecM) {
+                inpTecM.value = g.tecidoManual || "";
+                inpTecM.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
+            }
+            if(inpModM) {
+                inpModM.value = g.modelagemManual || "";
+                inpModM.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
             }
 
-            // 4. Preencher a tabela de itens
+            // AGORA OS ITENS: Reconstrução direta na tabela
             const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
             if (corpoTabela && g.itens) {
-                corpoTabela.innerHTML = ""; // Limpa qualquer resíduo
-                
                 g.itens.forEach(it => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
