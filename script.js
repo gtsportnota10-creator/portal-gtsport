@@ -606,5 +606,32 @@ function restaurarRascunho() {
         });
     }
 }
+
+function limparItensMantendoCliente() {
+    if (!confirm("Deseja apagar todos os itens e modelos? (Nome e Telefone serão mantidos)")) {
+        return;
+    }
+
+    // 1. Localiza o container de modelagens
+    const container = document.getElementById('container-modelagens');
+    if (!container) return;
+
+    // 2. Limpa todo o conteúdo de itens e modelos
+    container.innerHTML = ""; 
+
+    // 3. Reseta as memórias de seleção de tecido/manual
+    ultimoTecidoSelecionado = "";
+    ultimoTecidoManual = "";
+
+    // 4. Adiciona um novo grupo vazio padrão
+    // Passamos 'true' para ele já criar a primeira linha de item
+    adicionarGrupoModelagem(true);
+
+    // 5. Atualiza o rascunho no localStorage
+    salvarRascunho();
+
+    // Feedback visual (opcional)
+    window.scrollTo({ top: 100, behavior: 'smooth' });
+}
 // INICIALIZAÇÃO
 carregarPerfil();
