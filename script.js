@@ -608,30 +608,35 @@ function restaurarRascunho() {
 }
 
 function limparItensMantendoCliente() {
-    if (!confirm("Deseja apagar todos os itens e modelos? (Nome e Telefone serão mantidos)")) {
+    // 1. Confirmação de segurança
+    if (!confirm("Deseja apagar todos os itens e observações? \n\n(Nome e Telefone serão mantidos)")) {
         return;
     }
 
-    // 1. Localiza o container de modelagens
+    // 2. LIMPA AS OBSERVAÇÕES GERAIS (O que você pediu)
+    const campoObs = document.getElementById('observacoesGerais');
+    if (campoObs) {
+        campoObs.value = ""; 
+    }
+
+    // 3. Limpa o container de itens/modelagens
     const container = document.getElementById('container-modelagens');
-    if (!container) return;
+    if (container) {
+        container.innerHTML = ""; 
+    }
 
-    // 2. Limpa todo o conteúdo de itens e modelos
-    container.innerHTML = ""; 
-
-    // 3. Reseta as memórias de seleção de tecido/manual
+    // 4. Reseta memórias de tecidos
     ultimoTecidoSelecionado = "";
     ultimoTecidoManual = "";
 
-    // 4. Adiciona um novo grupo vazio padrão
-    // Passamos 'true' para ele já criar a primeira linha de item
+    // 5. Cria o primeiro grupo vazio com uma linha de item pronta
     adicionarGrupoModelagem(true);
 
-    // 5. Atualiza o rascunho no localStorage
+    // 6. Atualiza o rascunho no localStorage imediatamente
     salvarRascunho();
 
-    // Feedback visual (opcional)
-    window.scrollTo({ top: 100, behavior: 'smooth' });
+    // 7. Feedback visual: volta para o início da tabela
+    window.scrollTo({ top: 200, behavior: 'smooth' });
 }
 // INICIALIZAÇÃO
 carregarPerfil();
