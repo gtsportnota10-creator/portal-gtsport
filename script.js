@@ -25,36 +25,68 @@ function obterEmailVendedor() {
 }
 
 
-
+// --- CORREÇÃO NA FUNÇÃO carregarPerfil ---
 async function carregarPerfil() {
+    carregandoRascunho = true; 
+    
     const identificador = obterEmailVendedor();
+    
     if (identificador) {
-        const { data, error } = await _supabase
-            .from('perfis_usuarios')
-            .select('*')
-            .ilike('email_usuario', `%${identificador}%`) 
-            .maybeSingle();
+        try {
+            const { data, error } = await _supabase
+                .from('perfis_usuarios')
+                .select('*')
+                .ilike('email_usuario', `%${identificador}%`) 
+                .maybeSingle();
 
-        if (data) {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
-            if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
-            
-            if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
-            if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
-            
-            const img = document.getElementById('logo-empresa');
-            if (data.url_logo && img) {
-                img.src = data.url_logo;
-                img.style.display = 'inline-block';
+            if (data) {
+                if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
+                if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
+                
+                if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
+                if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
+                
+                const img = document.getElementById('logo-empresa');
+                if (data.url_logo && img) {
+                    img.src = data.url_logo;
+                    img.style.display = 'inline-block';
+                }
+            } else {
+                if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
             }
-        } else {
-            if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
+        } catch (err) {
+            console.error("Erro ao carregar perfil:", err);
         }
     } else {
         if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
-    adicionarGrupoModelagem();
-}
+
+    const rascunhoSalvo = localStorage.getItem('rascunho_pedido');
+
+    if (rascunhoSalvo) {
+        const dadosRascunho = JSON.parse(rascunhoSalvo);
+        
+        if (dadosRascunho.status === 'enviado_com_sucesso') {
+            document.getElementById('formulario-pedido').style.display = 'none';
+            document.getElementById('tela-sucesso').style.display = 'block';
+            carregandoRascunho = false;
+            const loading = document.getElementById('loading-inicial');
+            if(loading) loading.style.display = 'none';
+            return; 
+        }
+        console.log("Rascunho encontrado, restaurando...");
+        restaurarRascunho();
+    } else {
+        adicionarGrupoModelagem();
+    } // <-- FALTAVA ESTA CHAVE
+
+    setTimeout(() => {
+        carregandoRascunho = false;
+        const loading = document.getElementById('loading-inicial');
+        if(loading) loading.style.display = 'none';
+        console.log("Sistema pronto e salvamento liberado.");
+    }, 1500); 
+} // <-- FALTAVA ESTA CHAVE
 
 // Gera o HTML das opções de tecido respeitando a memória da última escolha
 function gerarOpcoesTecido() {
@@ -311,8 +343,7 @@ function prepararNovoPedido() {
     document.getElementById('formulario-pedido').style.display = 'block';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // No confirmarEEnviar e prepararNovoPedido, troque para:
-localStorage.removeItem('rascunho_pedido');
+
 }
 
 
