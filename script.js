@@ -9,6 +9,8 @@ let listaTecidos = [];
 // Variáveis de memória para manter o tecido selecionado no próximo grupo
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
+let carregandoRascunho = false; // Impede que o sistema salve por cima enquanto reconstrói a tela
+
 
 function obterEmailVendedor() {
     const urlAtual = window.location.href;
@@ -22,7 +24,12 @@ function obterEmailVendedor() {
     return vendedorId ? vendedorId.trim().toLowerCase() : null;
 }
 
+
+
+// 2. A FUNÇÃO CARREGAR PERFIL ATUALIZADA
 async function carregarPerfil() {
+    carregandoRascunho = true; // TRAVA o salvamento para não sobrescrever com tela vazia
+    
     const identificador = obterEmailVendedor();
     if (identificador) {
         const { data, error } = await _supabase
@@ -35,6 +42,7 @@ async function carregarPerfil() {
             if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = data.nome_empresa || "GTBot Empresa";
             if(document.getElementById('nome-atendente')) document.getElementById('nome-atendente').innerText = `Atendimento: ${data.nome_atendente || 'Geral'}`;
             
+            // GARANTE que as listas de tecidos e modelagens carreguem ANTES do rascunho
             if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
             if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
             
@@ -50,15 +58,18 @@ async function carregarPerfil() {
         if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Link de Acesso Inválido";
     }
 
-    // Lógica do Rascunho
-    if (sessionStorage.getItem('rascunho_pedido')) {
+    // Lógica do Rascunho usando LOCALSTORAGE (mais seguro para celular)
+    if (localStorage.getItem('rascunho_pedido')) {
         restaurarRascunho();
     } else {
         adicionarGrupoModelagem();
     }
-} // <--- ESTA CHAVE É A QUE FALTAVA PARA FECHAR A FUNÇÃO!
-    
- 
+
+    // Libera o salvamento após os itens serem montados na tela
+    setTimeout(() => {
+        carregandoRascunho = false;
+    }, 800); 
+}
 
 // Gera o HTML das opções de tecido respeitando a memória da última escolha
 function gerarOpcoesTecido() {
@@ -310,7 +321,8 @@ function prepararNovoPedido() {
     document.getElementById('formulario-pedido').style.display = 'block';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    sessionStorage.removeItem('rascunho_pedido');
+    // No confirmarEEnviar e prepararNovoPedido, troque para:
+localStorage.removeItem('rascunho_pedido');
 }
 
 
@@ -381,7 +393,8 @@ async function confirmarEEnviar() {
             }]);
        
         if (error) throw error;
-       sessionStorage.removeItem('rascunho_pedido');
+      // No confirmarEEnviar e prepararNovoPedido, troque para:
+localStorage.removeItem('rascunho_pedido');
         // --- SUCESSO ---
         // Destravamos o botão para caso o usuário volte para editar depois
         btnConfirmar.disabled = false;
@@ -478,7 +491,12 @@ function enviarWhatsApp() {
 
 // --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
 
+
+
+// A função salvarRascunho completa e corrigida:
 function salvarRascunho() {
+    if (carregandoRascunho) return; 
+
     const rascunho = {
         clienteNome: document.getElementById('clienteNome')?.value || "",
         clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
@@ -508,11 +526,12 @@ function salvarRascunho() {
         rascunho.grupos.push(dadosGrupo);
     });
 
-    sessionStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
+    // SEMPRE LOCALSTORAGE PARA O CELULAR
+    localStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
 }
 
 function restaurarRascunho() {
-    const dadosSalvos = sessionStorage.getItem('rascunho_pedido');
+    const dadosSalvos = localStorage.getItem('rascunho_pedido');
     if (!dadosSalvos) return;
 
     const rascunho = JSON.parse(dadosSalvos);
