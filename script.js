@@ -690,7 +690,7 @@ function executarLimpezaTotal() {
     window.scrollTo({ top: 150, behavior: 'smooth' });
 }
 
-    // --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS ---
+// --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS (CORRIGIDA) ---
 function configurarSugestaoTamanho(inputTam) {
     const grupo = inputTam.closest('.grupo-modelagem');
     if (!grupo) return;
@@ -722,6 +722,22 @@ function configurarSugestaoTamanho(inputTam) {
         
         // Vincula a caixa de texto a essa lista de tamanhos específica
         inputTam.setAttribute('list', idDatalist);
+
+        // --- TRUQUE PARA DETONAR O FILTRO DO NAVEGADOR ---
+        // Quando o usuário clica/foca, guardamos o valor atual e limpamos o campo para forçar o datalist a abrir COMPLETO
+        if (inputTam.value !== "") {
+            let valorAntigo = inputTam.value;
+            inputTam.value = ""; // Limpa para mostrar tudo
+            
+            // Se o usuário clicar fora sem escolher nada, devolve o valor antigo
+            const restaurarValor = () => {
+                if (inputTam.value === "") {
+                    inputTam.value = valorAntigo;
+                }
+                inputTam.removeEventListener('blur', restaurarValor);
+            };
+            inputTam.addEventListener('blur', restaurarValor);
+        }
     } else {
         // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
         inputTam.removeAttribute('list');
