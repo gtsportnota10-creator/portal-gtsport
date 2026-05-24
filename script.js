@@ -127,7 +127,7 @@ function adicionarGrupoModelagem(criarLinhaPadrao = true) {
     // Preparar Modelagens
     let opcoesModHtml = '<option value="">Selecione a modelagem...</option>';
     listaModelagens.forEach(mod => {
-        opcoesModHtml += `<option value="${mod}">${mod}</option>`;
+        opcoesModHtml += `<option value="${mod}">${mod}</option>';
     });
     opcoesModHtml += `<option value="OUTRA">➕ Outra (Escrever manualmente)</option>`;
 
@@ -159,11 +159,11 @@ function adicionarGrupoModelagem(criarLinhaPadrao = true) {
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 30%;">Nome</th>
-                        <th style="width: 15%;">Tamanho</th>
-                        <th style="width: 15%;">Número</th>
-                        <th style="width: 15%;">Quantidade</th>
-                        <th style="width: 25%;">Adicional</th>
+                        <th>Nome</th>
+                        <th>Tamanho</th>
+                        <th>Número</th>
+                        <th>Quantidade</th>
+                        <th>Adicional</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -472,7 +472,7 @@ localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
     }
 }
 
-function voltarParaEditar() {
+function volverParaEditar() {
     carregandoRascunho = true; // Trava o salvamento enquanto limpa
 
     const rascunhoAtual = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
@@ -555,11 +555,8 @@ function enviarWhatsApp() {
     window.open(linkZap, '_blank');
 }
 
-// --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
+// --- FUNÇÕES DE RASCUNHO (LOCAL STORAGE) ---
 
-
-
-// A função salvarRascunho completa e corrigida:
 function salvarRascunho() {
     if (carregandoRascunho) return; 
 
@@ -592,7 +589,6 @@ function salvarRascunho() {
         rascunho.grupos.push(dadosGrupo);
     });
 
-    // SEMPRE LOCALSTORAGE PARA O CELULAR
     localStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
 }
 
@@ -621,7 +617,6 @@ function restaurarRascunho() {
 
     // Se tem grupos, reconstrói um por um
     rascunho.grupos.forEach((g) => {
-        // Criamos o grupo sem a linha padrão para inserir os dados do rascunho
         adicionarGrupoModelagem(false); 
         
         const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
@@ -647,7 +642,7 @@ function restaurarRascunho() {
             inpModM.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
         }
 
-        // Reconstrói as linhas da tabela deste grupo
+        // Reconstrói as linhas da tabela deste grupo (CORRIGIDO ADICIONANDO A COLUNA QTD)
         const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
         if (corpoTabela && g.itens) {
             g.itens.forEach(it => {
@@ -655,16 +650,17 @@ function restaurarRascunho() {
                 tr.innerHTML = `
                     <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
                     <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
-                 <td>
-            <input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
-            <datalist id="lista-num-fixo-r">
-                ${(() => {
-                    let options = '';
-                    for (let i = 1; i <= 100; i++) { options += `<option value="${i}"></option>`; }
-                    return options;
-                })()}
-            </datalist>
-        </td>
+                    <td>
+                        <input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
+                        <datalist id="lista-num-fixo-r">
+                            ${(() => {
+                                let options = '';
+                                for (let i = 1; i <= 100; i++) { options += `<option value="${i}"></option>`; }
+                                return options;
+                            })()}
+                        </datalist>
+                    </td>
+                    <td><input type="number" class="i-qtd" value="${it.qtd || '1'}"></td>
                     <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
                     <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
                 `;
@@ -674,36 +670,28 @@ function restaurarRascunho() {
     });
 }
 
-// 1. Chama o modal em vez do confirm do navegador
 function limparItensMantendoCliente() {
     document.getElementById('modal-limpar-confirmacao').style.display = 'flex';
 }
 
-// 2. Fecha o modal se o usuário desistir
 function fecharModalLimpar() {
     document.getElementById('modal-limpar-confirmacao').style.display = 'none';
 }
 
-// 3. Ação real de limpeza (roda quando clica em "Sim, Limpar")
 function executarLimpezaTotal() {
-    // Limpa Observações
     const campoObs = document.getElementById('observacoesGerais');
     if (campoObs) campoObs.value = ""; 
 
-    // Limpa Itens
     const container = document.getElementById('container-modelagens');
     if (container) container.innerHTML = ""; 
 
-    // Reseta memórias e cria novo grupo
     ultimoTecidoSelecionado = "";
     ultimoTecidoManual = "";
     adicionarGrupoModelagem(true);
 
-    // Salva e fecha
     salvarRascunho();
     fecharModalLimpar();
     
-    // Rola para o topo do formulário
     window.scrollTo({ top: 150, behavior: 'smooth' });
 }
 
@@ -715,15 +703,12 @@ function configurarSugestaoTamanho(inputTam) {
     const selectMod = grupo.querySelector('.i-mod-nome');
     const inputModManual = grupo.querySelector('.i-mod-manual');
     
-    // Identifica qual modelagem está selecionada no momento
     let modelagemSelecionada = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
     modelagemSelecionada = (modelagemSelecionada || "").trim().toUpperCase();
 
-    // Se houver tamanhos cadastrados para esta modelagem, cria as opções
     if (modelagemSelecionada && dicionarioTamanhos[modelagemSelecionada]) {
         let idDatalist = `lista-tamanhos-${modelagemSelecionada.replace(/[^a-zA-Z0-9]/g, "-")}`;
         
-        // Se a lista de sugestões (datalist) ainda não existir no HTML, nós criamos ela
         let datalist = document.getElementById(idDatalist);
         if (!datalist) {
             datalist = document.createElement('datalist');
@@ -737,18 +722,12 @@ function configurarSugestaoTamanho(inputTam) {
             document.body.appendChild(datalist);
         }
         
-        // Vincula a caixa de texto a essa lista de tamanhos específica
         inputTam.setAttribute('list', idDatalist);
 
-        // --- TRUQUE PARA MANDAR EXIBIR TODOS OS TAMANHOS INDEPENDENTE DO QUE ESTÁ DIGITADO ---
-        // Guarda o valor atual caso o usuário desista de alterar
         const valorAtual = inputTam.value;
-
-        // Quando o usuário clica/foca, limpamos o valor pro datalist resetar o filtro e exibir tudo
         inputTam.value = ''; 
         inputTam.placeholder = valorAtual || 'G';
 
-        // Evento para o caso do usuário clicar fora sem escolher nada: devolve o valor antigo
         const restaurarValor = () => {
             if (inputTam.value === '') {
                 inputTam.value = valorAtual;
@@ -758,26 +737,8 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.addEventListener('blur', restaurarValor);
 
     } else {
-        // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
         inputTam.removeAttribute('list');
     }
 }
 
-function configurarSugestaoNumero(inputNum) {
-    // Vincula o campo ao datalist fixo de 1 a 100
-    inputNum.setAttribute('list', 'lista-numeros-1-100');
-
-    // Aplica o truque para mostrar todas as opções de 1 a 100 ao clicar
-    const valorAtual = inputNum.value;
-    inputNum.value = '';
-    inputNum.placeholder = valorAtual || 'Nº';
-
-    const restaurarValorNum = () => {
-        if (inputNum.value === '') {
-            inputNum.value = valorAtual;
-        }
-        inputNum.removeEventListener('blur', restaurarValorNum);
-    };
-    inputNum.addEventListener('blur', restaurarValorNum);
-}
 carregarPerfil();
