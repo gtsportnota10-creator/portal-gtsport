@@ -230,8 +230,8 @@ function adicionarLinhaItem(botao) {
     tr.innerHTML = `
         <td><input type="text" class="i-nome" placeholder="Nome"></td>
         <td><input type="text" class="i-tam" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
-     <td>
-            <input type="text" class="i-num" placeholder="Nº" list="lista-num-fixo" onclick="this.value=''; this.blur(); this.focus();">
+    <td>
+            <input type="text" class="i-num" placeholder="Nº" list="lista-num-fixo" onmousedown="this.value='';">
             <datalist id="lista-num-fixo">
                 ${(() => {
                     let options = '';
@@ -655,8 +655,8 @@ function restaurarRascunho() {
                 tr.innerHTML = `
                     <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
                     <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
-                  <td>
-            <input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onclick="this.value=''; this.blur(); this.focus();">
+                 <td>
+            <input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
             <datalist id="lista-num-fixo-r">
                 ${(() => {
                     let options = '';
@@ -762,20 +762,6 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.removeAttribute('list');
     }
 }
-function inicializarDatalistNumeros() {
-    let datalistNum = document.getElementById('lista-numeros-1-100');
-    if (!datalistNum) {
-        datalistNum = document.createElement('datalist');
-        datalistNum.id = 'lista-numeros-1-100';
-        for (let i = 1; i <= 100; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            datalistNum.appendChild(option);
-        }
-        document.body.appendChild(datalistNum);
-    }
-}
-inicializarDatalistNumeros();
 
 function configurarSugestaoNumero(inputNum) {
     // Vincula o campo ao datalist fixo de 1 a 100
