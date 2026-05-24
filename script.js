@@ -690,7 +690,7 @@ function executarLimpezaTotal() {
     window.scrollTo({ top: 150, behavior: 'smooth' });
 }
 
-// --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS (CORRIGIDA) ---
+// --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS ---
 function configurarSugestaoTamanho(inputTam) {
     const grupo = inputTam.closest('.grupo-modelagem');
     if (!grupo) return;
@@ -723,25 +723,26 @@ function configurarSugestaoTamanho(inputTam) {
         // Vincula a caixa de texto a essa lista de tamanhos específica
         inputTam.setAttribute('list', idDatalist);
 
-        // --- TRUQUE PARA DETONAR O FILTRO DO NAVEGADOR ---
-        // Quando o usuário clica/foca, guardamos o valor atual e limpamos o campo para forçar o datalist a abrir COMPLETO
-        if (inputTam.value !== "") {
-            let valorAntigo = inputTam.value;
-            inputTam.value = ""; // Limpa para mostrar tudo
-            
-            // Se o usuário clicar fora sem escolher nada, devolve o valor antigo
-            const restaurarValor = () => {
-                if (inputTam.value === "") {
-                    inputTam.value = valorAntigo;
-                }
-                inputTam.removeEventListener('blur', restaurarValor);
-            };
-            inputTam.addEventListener('blur', restaurarValor);
-        }
+        // --- TRUQUE PARA MANDAR EXIBIR TODOS OS TAMANHOS INDEPENDENTE DO QUE ESTÁ DIGITADO ---
+        // Guarda o valor atual caso o usuário desista de alterar
+        const valorAtual = inputTam.value;
+
+        // Quando o usuário clica/foca, limpamos o valor pro datalist resetar o filtro e exibir tudo
+        inputTam.value = ''; 
+        inputTam.placeholder = valorAtual || 'G';
+
+        // Evento para o caso do usuário clicar fora sem escolher nada: devolve o valor antigo
+        const restaurarValor = () => {
+            if (inputTam.value === '') {
+                inputTam.value = valorAtual;
+            }
+            inputTam.removeEventListener('blur', restaurarValor);
+        };
+        inputTam.addEventListener('blur', restaurarValor);
+
     } else {
         // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
         inputTam.removeAttribute('list');
     }
 }
-// INICIALIZAÇÃO
 carregarPerfil();
