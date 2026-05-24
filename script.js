@@ -5,7 +5,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let listaModelagens = [];
 let listaTecidos = []; 
-
+let dicionarioTamanhos = {}; // <-- ADICIONE ESTA LINHA AQUI
 // Variáveis de memória para manter o tecido selecionado no próximo grupo
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
@@ -46,11 +46,27 @@ async function carregarPerfil() {
                 if (data.modelagens) listaModelagens = data.modelagens.split(',').map(item => item.trim());
                 if (data.tecidos) listaTecidos = data.tecidos.split(',').map(item => item.trim());
                 
+                // --- PROCESSA OS TAMANHOS SEPARADOS POR PONTO ---
+                dicionarioTamanhos = {};
+                if (data.tamanhos_modelagens) {
+                    // Quebra pelas modelagens usando o ponto (.)
+                    const partesModelagens = data.tamanhos_modelagens.split('.');
+                    partesModelagens.forEach(parte => {
+                        if (parte.includes(':')) {
+                            const [nomeMod, tamanhosBrutos] = parte.split(':');
+                            // Guarda os tamanhos associados àquela modelagem exata em caixa alta
+                            dicionarioTamanhos[nomeMod.trim().toUpperCase()] = tamanhosBrutos.split(',').map(t => t.trim().toUpperCase());
+                        }
+                    });
+                }
+                // ------------------------------------------------
+
                 const img = document.getElementById('logo-empresa');
                 if (data.url_logo && img) {
                     img.src = data.url_logo;
                     img.style.display = 'inline-block';
                 }
+            
             } else {
                 if(document.getElementById('nome-empresa')) document.getElementById('nome-empresa').innerText = "Vendedor não Identificado";
             }
@@ -213,12 +229,11 @@ function adicionarLinhaItem(botao) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
         <td><input type="text" class="i-nome" placeholder="Nome"></td>
-        <td><input type="text" class="i-tam" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+        <td><input type="text" class="i-tam" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
         <td><input type="text" class="i-num" placeholder="Nº"></td>
         <td><input type="number" class="i-qtd" value="1"></td>
         <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
-        
-<td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
+        <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
     `;
     corpo.appendChild(tr);
 
@@ -630,7 +645,7 @@ function restaurarRascunho() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
-                    <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+                    <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
                     <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
                     <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
                     <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
@@ -673,6 +688,44 @@ function executarLimpezaTotal() {
     
     // Rola para o topo do formulário
     window.scrollTo({ top: 150, behavior: 'smooth' });
+}
+
+    // --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS ---
+function configurarSugestaoTamanho(inputTam) {
+    const grupo = inputTam.closest('.grupo-modelagem');
+    if (!grupo) return;
+
+    const selectMod = grupo.querySelector('.i-mod-nome');
+    const inputModManual = grupo.querySelector('.i-mod-manual');
+    
+    // Identifica qual modelagem está selecionada no momento
+    let modelagemSelecionada = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
+    modelagemSelecionada = (modelagemSelecionada || "").trim().toUpperCase();
+
+    // Se houver tamanhos cadastrados para esta modelagem, cria as opções
+    if (modelagemSelecionada && dicionarioTamanhos[modelagemSelecionada]) {
+        let idDatalist = `lista-tamanhos-${modelagemSelecionada.replace(/[^a-zA-Z0-9]/g, "-")}`;
+        
+        // Se a lista de sugestões (datalist) ainda não existir no HTML, nós criamos ela
+        let datalist = document.getElementById(idDatalist);
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = idDatalist;
+            
+            dicionarioTamanhos[modelagemSelecionada].forEach(tam => {
+                const option = document.createElement('option');
+                option.value = tam;
+                datalist.appendChild(option);
+            });
+            document.body.appendChild(datalist);
+        }
+        
+        // Vincula a caixa de texto a essa lista de tamanhos específica
+        inputTam.setAttribute('list', idDatalist);
+    } else {
+        // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
+        inputTam.removeAttribute('list');
+    }
 }
 // INICIALIZAÇÃO
 carregarPerfil();
