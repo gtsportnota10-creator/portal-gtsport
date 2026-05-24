@@ -124,17 +124,54 @@ select.i-mod-nome {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 6. TABELA E SCROLL */
+/* 6. TABELA E SCROLL - CORRIGIDO */
 .tabela-wrapper { 
-    overflow-x: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth; border-radius: 12px; border: 1px solid #f1f5f9;
+    overflow-x: auto; 
+    margin-bottom: 15px; 
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth; 
+    border-radius: 12px; 
+    border: 1px solid #e2e8f0;
+    background: white;
 }
 
-table { width: 100%; border-collapse: collapse; min-width: 550px; }
-th { background: #f8fafc; text-align: left; font-size: 11px; color: #64748b; padding: 12px 8px; text-transform: uppercase; font-weight: 700; }
-td { padding: 8px 5px; }
-td input { padding: 10px; height: 42px; font-size: 14px; border-width: 1px; }
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    min-width: 580px; /* Garante espaço confortável para todas as colunas no toque */
+    table-layout: fixed; /* Força o navegador a respeitar as larguras exatas abaixo */
+}
 
+th { 
+    background: #f8fafc; 
+    text-align: left; 
+    font-size: 11px; 
+    color: #64748b; 
+    padding: 12px 8px; 
+    text-transform: uppercase; 
+    font-weight: 700; 
+}
+
+td { 
+    padding: 8px 5px; 
+    vertical-align: middle;
+}
+
+td input, td select { 
+    padding: 10px; 
+    height: 42px; 
+    font-size: 14px; 
+    border-width: 1px; 
+    width: 100%; /* Ocupa 100% da célula onde está guardado */
+}
+
+/* DISTRIBUIÇÃO EXATA DE ESPAÇO PARA AS COLUNAS NÃO SUMIREM */
+table th:nth-child(1), table td:nth-child(1) { width: 30%; } /* Nome */
+table th:nth-child(2), table td:nth-child(2) { width: 14%; } /* Tamanho */
+table th:nth-child(3), table td:nth-child(3) { width: 14%; } /* Número (Datalist seguro aqui) */
+table th:nth-child(4), table td:nth-child(4) { width: 14%; } /* Quantidade (Nunca mais some!) */
+table th:nth-child(5), table td:nth-child(5) { width: 20%; } /* Adicional */
+table th:nth-child(6), table td:nth-child(6) { width: 8%;  text-align: center; } /* Botão X */
 /* 7. BOTÕES */
 button { 
     border: none; 
