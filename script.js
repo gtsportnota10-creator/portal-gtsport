@@ -230,7 +230,7 @@ function adicionarLinhaItem(botao) {
     tr.innerHTML = `
         <td><input type="text" class="i-nome" placeholder="Nome"></td>
         <td><input type="text" class="i-tam" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
-        <td><input type="text" class="i-num" placeholder="Nº" onfocus="configurarSugestaoNumero(this)"></td>
+        <td><input type="text" class="i-num" placeholder="Nº" list="lista-numeros-1-100" onclick="this.value=''; this.blur(); this.focus();"></td>
         <td><input type="number" class="i-qtd" value="1"></td>
         <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
         <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
@@ -646,7 +646,7 @@ function restaurarRascunho() {
                 tr.innerHTML = `
                     <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
                     <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
-                    <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" onfocus="configurarSugestaoNumero(this)"></td>
+                   <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-numeros-1-100" onclick="this.value=''; this.blur(); this.focus();"></td>
                     <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
                     <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
                     <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
@@ -745,15 +745,11 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.removeAttribute('list');
     }
 }
-// --- GERADOR DA LISTA DE NÚMEROS DE 1 A 100 ---
 function inicializarDatalistNumeros() {
     let datalistNum = document.getElementById('lista-numeros-1-100');
-    
-    // Se ainda não existir, cria a lista de 1 a 100
     if (!datalistNum) {
         datalistNum = document.createElement('datalist');
         datalistNum.id = 'lista-numeros-1-100';
-        
         for (let i = 1; i <= 100; i++) {
             const option = document.createElement('option');
             option.value = i;
@@ -762,6 +758,7 @@ function inicializarDatalistNumeros() {
         document.body.appendChild(datalistNum);
     }
 }
+inicializarDatalistNumeros();
 
 function configurarSugestaoNumero(inputNum) {
     // Vincula o campo ao datalist fixo de 1 a 100
