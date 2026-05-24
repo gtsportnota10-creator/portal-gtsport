@@ -472,273 +472,312 @@ localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
     }
 }
 
-function volverParaEditar() {
-    carregandoRascunho = true; // Trava o salvamento enquanto limpa
+function voltarParaEditar() {
+    carregandoRascunho = true; // Trava o salvamento enquanto limpa
 
-    const rascunhoAtual = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
-    if (rascunhoAtual.status) {
-        delete rascunhoAtual.status;
-        localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoAtual));
-    }
+    const rascunhoAtual = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
+    if (rascunhoAtual.status) {
+        delete rascunhoAtual.status;
+        localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoAtual));
+    }
 
-    // Mostra as telas
-    document.getElementById('tela-sucesso').style.display = 'none';
-    document.getElementById('formulario-pedido').style.display = 'block';
-    
-    // Pequeno delay para garantir que o DOM está pronto antes de liberar o salvamento
-    setTimeout(() => {
-        carregandoRascunho = false;
-    }, 500);
+    // Mostra as telas
+    document.getElementById('tela-sucesso').style.display = 'none';
+    document.getElementById('formulario-pedido').style.display = 'block';
+    
+    // Pequeno delay para garantir que o DOM está pronto antes de liberar o salvamento
+    setTimeout(() => {
+        carregandoRascunho = false;
+    }, 500);
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 
 function enviarWhatsApp() {
-    const nome = document.getElementById('clienteNome').value.trim().toUpperCase();
-    const obsGerais = document.getElementById('observacoesGerais').value.trim();
-    const empresa = document.getElementById('nome-empresa').innerText;
+    const nome = document.getElementById('clienteNome').value.trim().toUpperCase();
+    const obsGerais = document.getElementById('observacoesGerais').value.trim();
+    const empresa = document.getElementById('nome-empresa').innerText;
 
-    let totalGeralPeças = 0;
-    const div = "------------------------------------------";
+    let totalGeralPeças = 0;
+    const div = "------------------------------------------";
 
-    let msg = "*RESUMO DO PEDIDO*\n";
-    msg += "EMPRESA: " + empresa + "\n";
-    msg += "CLIENTE: " + nome + "\n";
-    if (obsGerais) msg += "OBS: " + obsGerais + "\n";
-    msg += div + "\n\n";
+    let msg = "*RESUMO DO PEDIDO*\n";
+    msg += "EMPRESA: " + empresa + "\n";
+    msg += "CLIENTE: " + nome + "\n";
+    if (obsGerais) msg += "OBS: " + obsGerais + "\n";
+    msg += div + "\n\n";
 
-    const grupos = document.querySelectorAll('.grupo-modelagem');
-    grupos.forEach(function(grupo) {
-        const selectTec = grupo.querySelector('.i-tec-nome');
-        const inputTecManual = grupo.querySelector('.i-tec-manual');
-        let tecido = (selectTec.value === "OUTRA") ? inputTecManual.value : selectTec.value;
-        
-        const selectMod = grupo.querySelector('.i-mod-nome');
-        const inputModManual = grupo.querySelector('.i-mod-manual');
-        let modelagem = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
+    const grupos = document.querySelectorAll('.grupo-modelagem');
+    grupos.forEach(function(grupo) {
+        const selectTec = grupo.querySelector('.i-tec-nome');
+        const inputTecManual = grupo.querySelector('.i-tec-manual');
+        let tecido = (selectTec.value === "OUTRA") ? inputTecManual.value : selectTec.value;
+        
+        const selectMod = grupo.querySelector('.i-mod-nome');
+        const inputModManual = grupo.querySelector('.i-mod-manual');
+        let modelagem = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
 
-        msg += "MODELO: " + (modelagem || 'PADRÃO').toUpperCase() + "\n";
-        msg += "TECIDO: " + (tecido || 'PADRÃO').toUpperCase() + "\n";
+        msg += "MODELO: " + (modelagem || 'PADRÃO').toUpperCase() + "\n";
+        msg += "TECIDO: " + (tecido || 'PADRÃO').toUpperCase() + "\n";
 
-        grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(function(row) {
-            const item = row.querySelector('.i-nome').value.trim().toUpperCase();
-            const tam = row.querySelector('.i-tam').value.trim().toUpperCase();
-            const num = row.querySelector('.i-num').value.trim();
-            const qtdInput = row.querySelector('.i-qtd').value;
-            const qtd = parseInt(qtdInput) || 0;
-            const adicional = row.querySelector('.i-adicional').value.trim();
+        grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(function(row) {
+            const item = row.querySelector('.i-nome').value.trim().toUpperCase();
+            const tam = row.querySelector('.i-tam').value.trim().toUpperCase();
+            const num = row.querySelector('.i-num').value.trim();
+            const qtdInput = row.querySelector('.i-qtd').value;
+            const qtd = parseInt(qtdInput) || 0;
+            const adicional = row.querySelector('.i-adicional').value.trim();
 
-            if (item || tam || qtd > 0) {
-                totalGeralPeças += qtd;
-                
-                // Formatação solicitada: > 1 un. - M - GILSON (N 99) [Camisa]
-                let linha = " > " + qtd + " un. - " + (tam || "S/T");
-                
-                if (item) linha += " - " + item;
-                if (num) linha += " (N " + num + ")";
-                if (adicional) linha += " [" + adicional + "]";
-                
-                msg += linha + "\n";
-            }
-        });
-        msg += "\n";
-    });
+            if (item || tam || qtd > 0) {
+                totalGeralPeças += qtd;
+                
+                // Formatação solicitada: > 1 un. - M - GILSON (N 99) [Camisa]
+                let linha = " > " + qtd + " un. - " + (tam || "S/T");
+                
+                if (item) linha += " - " + item;
+                if (num) linha += " (N " + num + ")";
+                if (adicional) linha += " [" + adicional + "]";
+                
+                msg += linha + "\n";
+            }
+        });
+        msg += "\n";
+    });
 
-    msg += div + "\n";
-    msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
-    msg += "Gerado via Portal de Pedidos";
+    msg += div + "\n";
+    msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
+    msg += "Gerado via Portal de Pedidos";
 
-    const textoFinal = encodeURIComponent(msg);
-    const linkZap = "https://wa.me/?text=" + textoFinal;
+    const textoFinal = encodeURIComponent(msg);
+    const linkZap = "https://wa.me/?text=" + textoFinal;
 
-    window.open(linkZap, '_blank');
+    window.open(linkZap, '_blank');
 }
 
-// --- FUNÇÕES DE RASCUNHO (LOCAL STORAGE) ---
+// --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
 
+
+
+// A função salvarRascunho completa e corrigida:
 function salvarRascunho() {
-    if (carregandoRascunho) return; 
+    if (carregandoRascunho) return; 
 
-    const rascunho = {
-        clienteNome: document.getElementById('clienteNome')?.value || "",
-        clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
-        observacoesGerais: document.getElementById('observacoesGerais')?.value || "",
-        grupos: []
-    };
+    const rascunho = {
+        clienteNome: document.getElementById('clienteNome')?.value || "",
+        clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
+        observacoesGerais: document.getElementById('observacoesGerais')?.value || "",
+        grupos: []
+    };
 
-    const grupos = document.querySelectorAll('.grupo-modelagem');
-    grupos.forEach(grupo => {
-        const dadosGrupo = {
-            tecido: grupo.querySelector('.i-tec-nome').value,
-            tecidoManual: grupo.querySelector('.i-tec-manual').value,
-            modelagem: grupo.querySelector('.i-mod-nome').value,
-            modelagemManual: grupo.querySelector('.i-mod-manual').value,
-            itens: []
-        };
+    const grupos = document.querySelectorAll('.grupo-modelagem');
+    grupos.forEach(grupo => {
+        const dadosGrupo = {
+            tecido: grupo.querySelector('.i-tec-nome').value,
+            tecidoManual: grupo.querySelector('.i-tec-manual').value,
+            modelagem: grupo.querySelector('.i-mod-nome').value,
+            modelagemManual: grupo.querySelector('.i-mod-manual').value,
+            itens: []
+        };
 
-        grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(row => {
-            dadosGrupo.itens.push({
-                nome: row.querySelector('.i-nome').value,
-                tam: row.querySelector('.i-tam').value,
-                num: row.querySelector('.i-num').value,
-                qtd: row.querySelector('.i-qtd').value,
-                adicional: row.querySelector('.i-adicional').value
-            });
-        });
-        rascunho.grupos.push(dadosGrupo);
-    });
+        grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(row => {
+            dadosGrupo.itens.push({
+                nome: row.querySelector('.i-nome').value,
+                tam: row.querySelector('.i-tam').value,
+                num: row.querySelector('.i-num').value,
+                qtd: row.querySelector('.i-qtd').value,
+                adicional: row.querySelector('.i-adicional').value
+            });
+        });
+        rascunho.grupos.push(dadosGrupo);
+    });
 
-    localStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
+    // SEMPRE LOCALSTORAGE PARA O CELULAR
+    localStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
 }
 
 function restaurarRascunho() {
-    const dadosSalvos = localStorage.getItem('rascunho_pedido');
-    if (!dadosSalvos) return;
+    const dadosSalvos = localStorage.getItem('rascunho_pedido');
+    if (!dadosSalvos) return;
 
-    const rascunho = JSON.parse(dadosSalvos);
+    const rascunho = JSON.parse(dadosSalvos);
 
-    // Restaurar campos de texto simples
-    if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome || "";
-    if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone || "";
-    if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais || "";
+    // Restaurar campos de texto simples
+    if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome || "";
+    if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone || "";
+    if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais || "";
 
-    const container = document.getElementById('container-modelagens');
-    if (!container) return;
-    
-    // Limpa o container para reconstruir
-    container.innerHTML = "";
+    const container = document.getElementById('container-modelagens');
+    if (!container) return;
+    
+    // Limpa o container para reconstruir
+    container.innerHTML = "";
 
-    // SEGURANÇA: Se o rascunho não tem grupos, adiciona um vazio e para por aqui
-    if (!rascunho.grupos || rascunho.grupos.length === 0) {
-        adicionarGrupoModelagem(true);
-        return;
-    }
+    // SEGURANÇA: Se o rascunho não tem grupos, adiciona um vazio e para por aqui
+    if (!rascunho.grupos || rascunho.grupos.length === 0) {
+        adicionarGrupoModelagem(true);
+        return;
+    }
 
-    // Se tem grupos, reconstrói um por um
-    rascunho.grupos.forEach((g) => {
-        adicionarGrupoModelagem(false); 
-        
-        const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
-        const ultimoGrupo = gruposNoDOM[gruposNoDOM.length - 1];
+    // Se tem grupos, reconstrói um por um
+    rascunho.grupos.forEach((g) => {
+        // Criamos o grupo sem a linha padrão para inserir os dados do rascunho
+        adicionarGrupoModelagem(false); 
+        
+        const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
+        const ultimoGrupo = gruposNoDOM[gruposNoDOM.length - 1];
 
-        // Seletores
-        const selTec = ultimoGrupo.querySelector('.i-tec-nome');
-        const selMod = ultimoGrupo.querySelector('.i-mod-nome');
-        const inpTecM = ultimoGrupo.querySelector('.i-tec-manual');
-        const inpModM = ultimoGrupo.querySelector('.i-mod-manual');
-        
-        // Aplica os valores dos Selects
-        if(selTec) selTec.value = g.tecido || "";
-        if(selMod) selMod.value = g.modelagem || "";
-        
-        // Restaura campos manuais (Outros) e a visibilidade deles
-        if(inpTecM) {
-            inpTecM.value = g.tecidoManual || "";
-            inpTecM.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
-        }
-        if(inpModM) {
-            inpModM.value = g.modelagemManual || "";
-            inpModM.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
-        }
+        // Seletores
+        const selTec = ultimoGrupo.querySelector('.i-tec-nome');
+        const selMod = ultimoGrupo.querySelector('.i-mod-nome');
+        const inpTecM = ultimoGrupo.querySelector('.i-tec-manual');
+        const inpModM = ultimoGrupo.querySelector('.i-mod-manual');
+        
+        // Aplica os valores dos Selects
+        if(selTec) selTec.value = g.tecido || "";
+        if(selMod) selMod.value = g.modelagem || "";
+        
+        // Restaura campos manuais (Outros) e a visibilidade deles
+        if(inpTecM) {
+            inpTecM.value = g.tecidoManual || "";
+            inpTecM.style.display = g.tecido === 'OUTRA' ? 'block' : 'none';
+        }
+        if(inpModM) {
+            inpModM.value = g.modelagemManual || "";
+            inpModM.style.display = g.modelagem === 'OUTRA' ? 'block' : 'none';
+        }
 
-        // Reconstrói as linhas da tabela deste grupo (CORRIGIDO ADICIONANDO A COLUNA QTD)
-        const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
-        if (corpoTabela && g.itens) {
-            g.itens.forEach(it => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
-                    <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
-                    <td>
-                        <input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
-                        <datalist id="lista-num-fixo-r">
-                            ${(() => {
-                                let options = '';
-                                for (let i = 1; i <= 100; i++) { options += `<option value="${i}"></option>`; }
-                                return options;
-                            })()}
-                        </datalist>
-                    </td>
-                    <td><input type="number" class="i-qtd" value="${it.qtd || '1'}"></td>
-                    <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
-                    <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
-                `;
-                corpoTabela.appendChild(tr);
-            });
-        }
-    });
+        // Reconstrói as linhas da tabela deste grupo
+        const corpoTabela = ultimoGrupo.querySelector('.corpo-tabela-itens');
+        if (corpoTabela && g.itens) {
+            g.itens.forEach(it => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
+                    <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
+                 <td>
+            <input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
+            <datalist id="lista-num-fixo-r">
+                ${(() => {
+                    let options = '';
+                    for (let i = 1; i <= 100; i++) { options += `<option value="${i}"></option>`; }
+                    return options;
+                })()}
+            </datalist>
+        </td>
+                    <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
+                    <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
+                `;
+                corpoTabela.appendChild(tr);
+            });
+        }
+    });
 }
 
+// 1. Chama o modal em vez do confirm do navegador
 function limparItensMantendoCliente() {
-    document.getElementById('modal-limpar-confirmacao').style.display = 'flex';
+    document.getElementById('modal-limpar-confirmacao').style.display = 'flex';
 }
 
+// 2. Fecha o modal se o usuário desistir
 function fecharModalLimpar() {
-    document.getElementById('modal-limpar-confirmacao').style.display = 'none';
+    document.getElementById('modal-limpar-confirmacao').style.display = 'none';
 }
 
+// 3. Ação real de limpeza (roda quando clica em "Sim, Limpar")
 function executarLimpezaTotal() {
-    const campoObs = document.getElementById('observacoesGerais');
-    if (campoObs) campoObs.value = ""; 
+    // Limpa Observações
+    const campoObs = document.getElementById('observacoesGerais');
+    if (campoObs) campoObs.value = ""; 
 
-    const container = document.getElementById('container-modelagens');
-    if (container) container.innerHTML = ""; 
+    // Limpa Itens
+    const container = document.getElementById('container-modelagens');
+    if (container) container.innerHTML = ""; 
 
-    ultimoTecidoSelecionado = "";
-    ultimoTecidoManual = "";
-    adicionarGrupoModelagem(true);
+    // Reseta memórias e cria novo grupo
+    ultimoTecidoSelecionado = "";
+    ultimoTecidoManual = "";
+    adicionarGrupoModelagem(true);
 
-    salvarRascunho();
-    fecharModalLimpar();
-    
-    window.scrollTo({ top: 150, behavior: 'smooth' });
+    // Salva e fecha
+    salvarRascunho();
+    fecharModalLimpar();
+    
+    // Rola para o topo do formulário
+    window.scrollTo({ top: 150, behavior: 'smooth' });
 }
 
 // --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS ---
 function configurarSugestaoTamanho(inputTam) {
-    const grupo = inputTam.closest('.grupo-modelagem');
-    if (!grupo) return;
+    const grupo = inputTam.closest('.grupo-modelagem');
+    if (!grupo) return;
 
-    const selectMod = grupo.querySelector('.i-mod-nome');
-    const inputModManual = grupo.querySelector('.i-mod-manual');
-    
-    let modelagemSelecionada = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
-    modelagemSelecionada = (modelagemSelecionada || "").trim().toUpperCase();
+    const selectMod = grupo.querySelector('.i-mod-nome');
+    const inputModManual = grupo.querySelector('.i-mod-manual');
+    
+    // Identifica qual modelagem está selecionada no momento
+    let modelagemSelecionada = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
+    modelagemSelecionada = (modelagemSelecionada || "").trim().toUpperCase();
 
-    if (modelagemSelecionada && dicionarioTamanhos[modelagemSelecionada]) {
-        let idDatalist = `lista-tamanhos-${modelagemSelecionada.replace(/[^a-zA-Z0-9]/g, "-")}`;
-        
-        let datalist = document.getElementById(idDatalist);
-        if (!datalist) {
-            datalist = document.createElement('datalist');
-            datalist.id = idDatalist;
-            
-            dicionarioTamanhos[modelagemSelecionada].forEach(tam => {
-                const option = document.createElement('option');
-                option.value = tam;
-                datalist.appendChild(option);
-            });
-            document.body.appendChild(datalist);
-        }
-        
-        inputTam.setAttribute('list', idDatalist);
+    // Se houver tamanhos cadastrados para esta modelagem, cria as opções
+    if (modelagemSelecionada && dicionarioTamanhos[modelagemSelecionada]) {
+        let idDatalist = `lista-tamanhos-${modelagemSelecionada.replace(/[^a-zA-Z0-9]/g, "-")}`;
+        
+        // Se a lista de sugestões (datalist) ainda não existir no HTML, nós criamos ela
+        let datalist = document.getElementById(idDatalist);
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = idDatalist;
+            
+            dicionarioTamanhos[modelagemSelecionada].forEach(tam => {
+                const option = document.createElement('option');
+                option.value = tam;
+                datalist.appendChild(option);
+            });
+            document.body.appendChild(datalist);
+        }
+        
+        // Vincula a caixa de texto a essa lista de tamanhos específica
+        inputTam.setAttribute('list', idDatalist);
 
-        const valorAtual = inputTam.value;
-        inputTam.value = ''; 
-        inputTam.placeholder = valorAtual || 'G';
+        // --- TRUQUE PARA MANDAR EXIBIR TODOS OS TAMANHOS INDEPENDENTE DO QUE ESTÁ DIGITADO ---
+        // Guarda o valor atual caso o usuário desista de alterar
+        const valorAtual = inputTam.value;
 
-        const restaurarValor = () => {
-            if (inputTam.value === '') {
-                inputTam.value = valorAtual;
-            }
-            inputTam.removeEventListener('blur', restaurarValor);
-        };
-        inputTam.addEventListener('blur', restaurarValor);
+        // Quando o usuário clica/foca, limpamos o valor pro datalist resetar o filtro e exibir tudo
+        inputTam.value = ''; 
+        inputTam.placeholder = valorAtual || 'G';
 
-    } else {
-        inputTam.removeAttribute('list');
-    }
+        // Evento para o caso do usuário clicar fora sem escolher nada: devolve o valor antigo
+        const restaurarValor = () => {
+            if (inputTam.value === '') {
+                inputTam.value = valorAtual;
+            }
+            inputTam.removeEventListener('blur', restaurarValor);
+        };
+        inputTam.addEventListener('blur', restaurarValor);
+
+    } else {
+        // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
+        inputTam.removeAttribute('list');
+    }
 }
 
+function configurarSugestaoNumero(inputNum) {
+    // Vincula o campo ao datalist fixo de 1 a 100
+    inputNum.setAttribute('list', 'lista-numeros-1-100');
+
+    // Aplica o truque para mostrar todas as opções de 1 a 100 ao clicar
+    const valorAtual = inputNum.value;
+    inputNum.value = '';
+    inputNum.placeholder = valorAtual || 'Nº';
+
+    const restaurarValorNum = () => {
+        if (inputNum.value === '') {
+            inputNum.value = valorAtual;
+        }
+        inputNum.removeEventListener('blur', restaurarValorNum);
+    };
+    inputNum.addEventListener('blur', restaurarValorNum);
+}
 carregarPerfil();
