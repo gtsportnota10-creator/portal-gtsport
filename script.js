@@ -213,7 +213,7 @@ function adicionarLinhaItem(botao) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
         <td><input type="text" class="i-nome" placeholder="Nome"></td>
-        <td><input type="text" class="i-tam" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+        <td><input type="text" class="i-tam" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
         <td><input type="text" class="i-num" placeholder="Nº" list="lista-num-fixo" onmousedown="this.value='';">
             <datalist id="lista-num-fixo">
                 ${(() => {
@@ -638,7 +638,7 @@ function restaurarRascunho() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
-                    <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
+                   <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" onfocus="configurarSugestaoTamanho(this)" oninput="this.value = this.value.toUpperCase()"></td>
                     <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
             <datalist id="lista-num-fixo-r">
                 ${(() => {
@@ -689,6 +689,61 @@ function executarLimpezaTotal() {
     
     // Rola para o topo do formulário
     window.scrollTo({ top: 150, behavior: 'smooth' });
+}
+// --- LOGICA DE EXIBIÇÃO DINÂMICA DOS TAMANHOS ---
+function configurarSugestaoTamanho(inputTam) {
+    const grupo = inputTam.closest('.grupo-modelagem');
+    if (!grupo) return;
+
+    const selectMod = grupo.querySelector('.i-mod-nome');
+    const inputModManual = grupo.querySelector('.i-mod-manual');
+    
+    // Identifica qual modelagem está selecionada no momento
+    let modelagemSelecionada = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
+    modelagemSelecionada = (modelagemSelecionada || "").trim().toUpperCase();
+
+    // Se houver tamanhos cadastrados para esta modelagem, cria as opções
+    if (modelagemSelecionada && dicionarioTamanhos[modelagemSelecionada]) {
+        let idDatalist = `lista-tamanhos-${modelagemSelecionada.replace(/[^a-zA-Z0-9]/g, "-")}`;
+        
+        // Se a lista de sugestões (datalist) ainda não existir no HTML, nós criamos ela
+        let datalist = document.getElementById(idDatalist);
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = idDatalist;
+            
+            dicionarioTamanhos[modelagemSelecionada].forEach(tam => {
+                const option = document.createElement('option');
+                option.value = tam;
+                datalist.appendChild(option);
+            });
+            document.body.appendChild(datalist);
+        }
+        
+        // Vincula a caixa de texto a essa lista de tamanhos específica
+        inputTam.setAttribute('list', idDatalist);
+
+        // --- TRUQUE PARA MANDAR EXIBIR TODOS OS TAMANHOS INDEPENDENTE DO QUE ESTÁ DIGITADO ---
+        // Guarda o valor atual caso o usuário desista de alterar
+        const valorAtual = inputTam.value;
+
+        // Quando o usuário clica/foca, limpamos o valor pro datalist resetar o filtro e exibir tudo
+        inputTam.value = ''; 
+        inputTam.placeholder = valorAtual || 'G';
+
+        // Evento para o caso do usuário clicar fora sem escolher nada: devolve o valor antigo
+        const restaurarValor = () => {
+            if (inputTam.value === '') {
+                inputTam.value = valorAtual;
+            }
+            inputTam.removeEventListener('blur', restaurarValor);
+        };
+        inputTam.addEventListener('blur', restaurarValor);
+
+    } else {
+        // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
+        inputTam.removeAttribute('list');
+    }
 }
 // INICIALIZAÇÃO
 carregarPerfil();
