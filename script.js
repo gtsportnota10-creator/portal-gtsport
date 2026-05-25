@@ -214,7 +214,15 @@ function adicionarLinhaItem(botao) {
     tr.innerHTML = `
         <td><input type="text" class="i-nome" placeholder="Nome"></td>
         <td><input type="text" class="i-tam" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-        <td><input type="text" class="i-num" placeholder="Nº"></td>
+        <td><input type="text" class="i-num" placeholder="Nº" list="lista-num-fixo" onmousedown="this.value='';">
+            <datalist id="lista-num-fixo">
+                ${(() => {
+                    let options = '';
+                    for (let i = 1; i <= 100; i++) { options += `<option value="${i}"></option>`; }
+                    return options;
+                })()}
+            </datalist>
+        </td>
         <td><input type="number" class="i-qtd" value="1"></td>
         <td><input type="text" class="i-adicional" placeholder="Conjunto"></td>
         
@@ -631,7 +639,15 @@ function restaurarRascunho() {
                 tr.innerHTML = `
                     <td><input type="text" class="i-nome" value="${it.nome || ''}" placeholder="Nome"></td>
                     <td><input type="text" class="i-tam" value="${it.tam || ''}" placeholder="G" oninput="this.value = this.value.toUpperCase()"></td>
-                    <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº"></td>
+                    <td><input type="text" class="i-num" value="${it.num || ''}" placeholder="Nº" list="lista-num-fixo-r" onmousedown="this.value='';">
+            <datalist id="lista-num-fixo-r">
+                ${(() => {
+                    let options = '';
+                    for (let i = 1; i <= 100; i++) { options += `<option value="${i}"></option>`; }
+                    return options;
+                })()}
+            </datalist>
+        </td>
                     <td><input type="number" class="i-qtd" value="${it.qtd || 1}"></td>
                     <td><input type="text" class="i-adicional" value="${it.adicional || ''}" placeholder="Conjunto"></td>
                     <td><button type="button" class="btn-del" onclick="this.closest('tr').remove(); salvarRascunho();">✕</button></td>
