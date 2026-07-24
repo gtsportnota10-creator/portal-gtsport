@@ -20,6 +20,7 @@
         </header>
 
         <div id="formulario-pedido">
+            <!-- SEÇÃO: DADOS DO CLIENTE -->
             <section class="card">
                 <h2>Dados do Cliente</h2>
                 
@@ -34,28 +35,27 @@
                     </div>
                 </div>
 
-                
-
                 <div class="campo" style="margin-top: 15px;">
                     <label>Observações Gerais</label>
                     <textarea id="observacoesGerais" placeholder="Algum detalhe adicional para a produção?" rows="2"></textarea>
                 </div>
+
+                <!-- 🖼️ NOVO: CAMPO DE UPLOAD E PRÉVIA DA ARTE -->
+                <div class="campo" style="margin-top: 20px;">
+                    <label>Anexar Arte / Imagem de Referência</label>
+                    <div class="upload-container" onclick="document.getElementById('inputArteCliente').click()">
+                        <input type="file" id="inputArteCliente" accept="image/*" style="display: none;" onchange="exibirPreviaArte(this)">
+                        <div id="upload-placeholder" class="upload-placeholder">
+                            <span>📁 Toque aqui para escolher a imagem da arte</span>
+                        </div>
+                        <div id="preview-container" style="display: none; text-align: center;">
+                            <img id="imgPrevia" src="" alt="Prévia da Arte" style="max-width: 100%; max-height: 200px; border-radius: 12px; object-fit: contain;">
+                            <button type="button" class="btn-remover-arte" onclick="event.stopPropagation(); removerArte()">❌ Remover Imagem</button>
+                        </div>
+                    </div>
+                </div>
             </section>
-<!-- 🖼️ NOVO: CAMPO DE UPLOAD E PRÉVIA DA ARTE -->
-    <div class="campo" style="margin-top: 20px;">
-        <label>Anexar Arte / Imagem de Referência</label>
-        <div class="upload-container" onclick="document.getElementById('inputArteCliente').click()">
-            <input type="file" id="inputArteCliente" accept="image/*" style="display: none;" onchange="exibirPreviaArte(this)">
-            <div id="upload-placeholder" class="upload-placeholder">
-                <span>📁 Toque aqui para escolher a imagem da arte</span>
-            </div>
-            <div id="preview-container" style="display: none; text-align: center;">
-                <img id="imgPrevia" src="" alt="Prévia da Arte" style="max-width: 100%; max-height: 200px; border-radius: 12px; object-fit: contain;">
-                <button type="button" class="btn-remover-arte" onclick="event.stopPropagation(); removerArte()">❌ Remover Imagem</button>
-            </div>
-        </div>
-    </div>
-</section>
+
             <div id="container-modelagens"></div>
 
             <div class="acoes-pedido">
@@ -66,73 +66,74 @@
                 <button class="btn-main" id="btnFinalizar" onclick="enviarPedido()">
                     FINALIZAR PEDIDO
                 </button>
-     <div style="margin-top: 15px; padding: 0 5px;">
-    <button type="button" onclick="limparItensMantendoCliente()" 
-        style="width: 100%; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-    🗑️ APAGAR TODOS OS ITENS
-</button>
-</div>
-              
-   
+                
+                <div style="margin-top: 15px; padding: 0 5px;">
+                    <button type="button" onclick="limparItensMantendoCliente()" 
+                        style="width: 100%; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        🗑️ APAGAR TODOS OS ITENS
+                    </button>
+                </div>
             </div>
         </div>
 
         <div id="tela-sucesso" style="display:none;">
-    <div class="card" style="text-align:center; padding: 40px 20px; border-radius: 24px;">
-        <div class="icone-sucesso" style="font-size: 50px; margin-bottom: 10px;">✅</div>
-        <h2 style="color: #10b981; border:none; font-weight: 800; margin-bottom: 10px;">PEDIDO RECEBIDO!</h2>
-        <p style="color: #64748b; margin-bottom: 30px;">O seu pedido já foi enviado para nossa produção com sucesso.</p>
-        
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <button class="btn-edit-gray" onclick="voltarParaEditar()" style="width: 100%; cursor: pointer;">
-                ← ADICIONAR MAIS ITENS / EDITAR
-            </button>
+            <div class="card" style="text-align:center; padding: 40px 20px; border-radius: 24px;">
+                <div class="icone-sucesso" style="font-size: 50px; margin-bottom: 10px;">✅</div>
+                <h2 style="color: #10b981; border:none; font-weight: 800; margin-bottom: 10px;">PEDIDO RECEBIDO!</h2>
+                <p style="color: #64748b; margin-bottom: 30px;">O seu pedido já foi enviado para nossa produção com sucesso.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn-edit-gray" onclick="voltarParaEditar()" style="width: 100%; cursor: pointer;">
+                        ← ADICIONAR MAIS ITENS / EDITAR
+                    </button>
 
-            <button class="btn-main-green" onclick="prepararNovoPedido()" style="width: 100%; cursor: pointer;">
-                NOVO PEDIDO
-            </button>
+                    <button class="btn-main-green" onclick="prepararNovoPedido()" style="width: 100%; cursor: pointer;">
+                        NOVO PEDIDO
+                    </button>
 
-           <button class="btn-main" onclick="enviarWhatsApp()" style="width: 100%; background: #25d366; box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4); margin-bottom: 5px;">
-    ENVIAR PEDIDO NO WHATSAPP
-</button>
+                    <button class="btn-main" onclick="enviarWhatsApp()" style="width: 100%; background: #25d366; box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4); margin-bottom: 5px;">
+                        ENVIAR PEDIDO NO WHATSAPP
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- MODAL DE CONFERÊNCIA -->
+    <div id="modal-conferencia" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Conferir Pedido</h3>
+                <p style="font-size: 14px; color: #64748b; margin-top: -10px;">Verifique os dados antes de enviar</p>
+            </div>
+            
+            <div id="resumo-pedido-html" class="resumo-container"></div>
+
+            <div class="modal-actions">
+                <button class="btn-main-green" onclick="confirmarEEnviar()">
+                    ✅ ENVIAR AGORA
+                </button>
+                <button type="button" class="btn-edit-gray" onclick="fecharConferencia()">
+                    ⬅ VOLTAR E EDITAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE LIMPEZA -->
+    <div id="modal-limpar-confirmacao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:white; width:100%; max-width:350px; border-radius:15px; padding:25px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div style="font-size: 40px; margin-bottom: 10px;">🗑️</div>
+            <h3 style="margin:0 0 10px 0; color:#1e293b; font-size:18px;">Limpar Pedido?</h3>
+            <p style="color:#64748b; font-size:14px; margin-bottom:25px;">Deseja apagar todos os itens e observações? <br><b>(Nome e Telefone serão mantidos)</b></p>
+            
+            <div style="display:flex; gap:10px;">
+                <button onclick="fecharModalLimpar()" style="flex:1; padding:12px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; border-radius:10px; font-weight:600; cursor:pointer;">Cancelar</button>
+                <button onclick="executarLimpezaTotal()" style="flex:1; padding:12px; border:none; background:#ef4444; color:white; border-radius:10px; font-weight:600; cursor:pointer;">Sim, Limpar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
-
-
-<div id="modal-conferencia" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Conferir Pedido</h3>
-            <p style="font-size: 14px; color: #64748b; margin-top: -10px;">Verifique os dados antes de enviar</p>
-        </div>
-        
-        <div id="resumo-pedido-html" class="resumo-container">
-            </div>
-
-        <div class="modal-actions">
-    <button class="btn-main-green" onclick="confirmarEEnviar()">
-    ✅ ENVIAR AGORA
-</button>
-    <button type="button" class="btn-edit-gray" onclick="fecharConferencia()">
-        ⬅ VOLTAR E EDITAR
-    </button>
-</div>
-    </div>
-</div>
-<div id="modal-limpar-confirmacao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:white; width:100%; max-width:350px; border-radius:15px; padding:25px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <div style="font-size: 40px; margin-bottom: 10px;">🗑️</div>
-        <h3 style="margin:0 0 10px 0; color:#1e293b; font-size:18px;">Limpar Pedido?</h3>
-        <p style="color:#64748b; font-size:14px; margin-bottom:25px;">Deseja apagar todos os itens e observações? <br><b>(Nome e Telefone serão mantidos)</b></p>
-        
-        <div style="display:flex; gap:10px;">
-            <button onclick="fecharModalLimpar()" style="flex:1; padding:12px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; border-radius:10px; font-weight:600; cursor:pointer;">Cancelar</button>
-            <button onclick="executarLimpezaTotal()" style="flex:1; padding:12px; border:none; background:#ef4444; color:white; border-radius:10px; font-weight:600; cursor:pointer;">Sim, Limpar</button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
