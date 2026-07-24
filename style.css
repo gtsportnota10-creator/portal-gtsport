@@ -425,15 +425,40 @@ td input::placeholder {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-/* Estilo para o campo e pré-visualização de arte */
-#selectArte {
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
-    padding-right: 40px;
+/* Estilo do bloco de upload de arte */
+.upload-container {
+    border: 2px dashed #cbd5e1;
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.upload-container:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.upload-placeholder {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-remover-arte {
+    margin-top: 10px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.btn-remover-arte:hover {
+    background: #fecaca;
 }
