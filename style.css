@@ -22,7 +22,7 @@ body {
 /* 2. HEADER */
 .header {    
     background: linear-gradient(135deg, #2563eb, #1e40af);    
-    padding: 15px 20px; /* Reduzido de 30px para 15px para o container ficar mais estreito */
+    padding: 15px 20px;    
     border-radius: 20px;    
     color: white;    
     margin-bottom: 20px;    
@@ -30,20 +30,21 @@ body {
     
     display: flex;
     flex-direction: column;
-    align-items: flex-start; 
-    gap: 8px; /* Menor espaço entre a linha da empresa e o atendente */
+    align-items: center; /* Centraliza todos os elementos no meio horizontalmente */
+    text-align: center;  /* Centraliza os textos */
+    gap: 8px; 
 }
 
 /* Linha superior (Logo + Nome da Empresa) */
 .header-topo {
     display: flex;
     align-items: center; 
-    gap: 12px; /* Espaço entre a logo e o texto */
-    text-align: left;
+    justify-content: center; /* Garante que fiquem centralizados juntos */
+    gap: 12px; 
 }
 
 #logo-empresa {    
-    width: 50px; /* Logo menor para economizar espaço vertical */
+    width: 50px; 
     height: 50px; 
     border-radius: 50%; 
     object-fit: cover;
@@ -53,7 +54,7 @@ body {
 
 #nome-empresa { 
     margin: 0; 
-    font-size: 18px; /* Fonte levemente menor e mais compacta */
+    font-size: 18px; 
     font-weight: 700; 
     letter-spacing: -0.5px; 
 }
