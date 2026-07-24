@@ -41,7 +41,30 @@
                     <textarea id="observacoesGerais" placeholder="Algum detalhe adicional para a produção?" rows="2"></textarea>
                 </div>
             </section>
+<!-- SEÇÃO DE ESCOLHA DE ARTE -->
+<section class="card">
+    <h2>Arte do Pedido</h2>
+    
+    <div class="campo" style="margin-bottom: 12px;">
+        <label>Escolher Arte Cadastrada</label>
+        <select id="selectArte" onchange="selecionarArteCatalogo(this)">
+            <option value="">Selecione uma arte...</option>
+            <!-- As opções serão preenchidas automaticamente pelo JavaScript -->
+        </select>
+    </div>
 
+    <!-- Campo para nome/link manual da arte caso queira digitar ou colar URL -->
+    <div class="campo" id="campoArteManualContainer" style="display:none; margin-bottom: 12px;">
+        <label>Nome ou Link da Arte</label>
+        <input type="text" id="arteManual" placeholder="Descreva ou cole o link da arte" oninput="atualizarPreviaArte(this.value)">
+    </div>
+
+    <!-- Área de Pré-visualização da Arte -->
+    <div id="container-previa-arte" style="display: none; margin-top: 15px; text-align: center; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1.5px dashed #cbd5e1;">
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 600;">Pré-visualização da Arte:</p>
+        <img id="imagemPreviaArte" src="" alt="Prévia da Arte" style="max-width: 100%; max-height: 200px; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: inline-block;">
+    </div>
+</section>
             <div id="container-modelagens"></div>
 
             <div class="acoes-pedido">
