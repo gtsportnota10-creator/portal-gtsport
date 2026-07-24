@@ -22,52 +22,50 @@ body {
 /* 2. HEADER */
 .header {    
     background: linear-gradient(135deg, #2563eb, #1e40af);    
-    padding: 30px 20px;    
-    border-radius: 24px;    
+    padding: 15px 20px; /* Reduzido de 30px para 15px para o container ficar mais estreito */
+    border-radius: 20px;    
     color: white;    
-    margin-bottom: 25px;    
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+    margin-bottom: 20px;    
+    box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.3);
     
-    /* Configurações estruturais para alinhar os elementos */
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Alinha tudo à esquerda */
-    gap: 15px; /* Espaço entre a linha superior e o atendente */
+    align-items: flex-start; 
+    gap: 8px; /* Menor espaço entre a linha da empresa e o atendente */
 }
 
-/* Container interno para juntar a logo e o nome da empresa na mesma linha */
+/* Linha superior (Logo + Nome da Empresa) */
 .header-topo {
     display: flex;
-    align-items: center; /* Centraliza o texto verticalmente com a logo */
-    gap: 15px; /* Espaço entre a logo e o nome da empresa */
+    align-items: center; 
+    gap: 12px; /* Espaço entre a logo e o texto */
     text-align: left;
 }
 
 #logo-empresa {    
-    width: 70px; 
-    height: 70px; 
+    width: 50px; /* Logo menor para economizar espaço vertical */
+    height: 50px; 
     border-radius: 50%; 
     object-fit: cover;
-    border: 3px solid rgba(255, 255, 255, 0.2); 
+    border: 2px solid rgba(255, 255, 255, 0.2); 
     background: white;
-    margin-bottom: 0; /* Removida a margem antiga */
 }
 
 #nome-empresa { 
     margin: 0; 
-    font-size: 22px; 
-    font-weight: 800; 
+    font-size: 18px; /* Fonte levemente menor e mais compacta */
+    font-weight: 700; 
     letter-spacing: -0.5px; 
 }
 
 #nome-atendente {    
-    margin-top: 0; 
-    font-size: 14px; 
+    margin: 0; 
+    font-size: 13px; 
     font-weight: 500;
     background: rgba(255, 255, 255, 0.15); 
     display: inline-block;
-    padding: 4px 12px; 
-    border-radius: 20px;
+    padding: 3px 10px; 
+    border-radius: 15px;
 }
 /* 3. CARDS E GRUPOS */
 .card, .grupo-modelagem { 
