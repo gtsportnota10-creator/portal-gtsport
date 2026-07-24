@@ -249,7 +249,20 @@ button {
 @media (max-width: 480px) {
     .app-container { padding: 10px; }
     .card, .grupo-modelagem { padding: 18px; }
-    .header { padding: 30px 15px; border-radius: 0 0 24px 24px; margin: -10px -10px 20px -10px; }
+    
+    /* Mantém o header compacto e centralizado também no celular */
+    .header { 
+        padding: 15px 15px; 
+        border-radius: 20px; 
+        margin: 0 0 20px 0; 
+        align-items: center; 
+        text-align: center; 
+    }
+    
+    .header-topo {
+        justify-content: center;
+    }
+
     .grid-campos { grid-template-columns: 1fr; gap: 0; }
 }
 /* Muda a cor dos textos de exemplo (placeholders) em todos os campos */
