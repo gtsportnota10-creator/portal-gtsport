@@ -10,7 +10,7 @@ let dicionarioTamanhos = {};
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
 let carregandoRascunho = false; // Impede que o sistema salve por cima enquanto reconstrói a tela
-let arquivoArteBase64 = "";
+
 
 function obterEmailVendedor() {
     const urlAtual = window.location.href;
@@ -363,8 +363,7 @@ function prepararNovoPedido() {
 
     // 3. Adiciona o primeiro grupo vazio novamente
     adicionarGrupoModelagem();
-// Adicione essa linha dentro de prepararNovoPedido():
-removerArte();
+
     // 4. Alterna as telas
     document.getElementById('tela-sucesso').style.display = 'none';
     document.getElementById('formulario-pedido').style.display = 'block';
@@ -557,17 +556,10 @@ function enviarWhatsApp() {
 // --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
 
 
+
+// A função salvarRascunho completa e corrigida:
 function salvarRascunho() {
     if (carregandoRascunho) return; 
-
-    const rascunho = {
-        clienteNome: document.getElementById('clienteNome')?.value || "",
-        clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
-        observacoesGerais: document.getElementById('observacoesGerais')?.value || "",
-        arteBase64: arquivoArteBase64, // 🖼️ Salva a imagem no rascunho
-        grupos: []
-    };
-    // ... restante da função continua igual
 
     const rascunho = {
         clienteNome: document.getElementById('clienteNome')?.value || "",
@@ -612,13 +604,7 @@ function restaurarRascunho() {
     if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome || "";
     if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone || "";
     if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais || "";
-// Logo no início da função restaurarRascunho(), após preencher nome e telefone:
-if (rascunho.arteBase64) {
-    arquivoArteBase64 = rascunho.arteBase64;
-    document.getElementById('imgPrevia').src = arquivoArteBase64;
-    document.getElementById('upload-placeholder').style.display = 'none';
-    document.getElementById('preview-container').style.display = 'block';
-}
+
     const container = document.getElementById('container-modelagens');
     if (!container) return;
     
@@ -773,36 +759,6 @@ function configurarSugestaoTamanho(inputTam) {
         // Se for uma modelagem sem tamanho cadastrado, remove o autocomplete anterior
         inputTam.removeAttribute('list');
     }
-}
-
-
-function exibirPreviaArte(input) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            arquivoArteBase64 = e.target.result; // Salva o base64
-            
-            // Mostra a prévia na tela
-            document.getElementById('imgPrevia').src = arquivoArteBase64;
-            document.getElementById('upload-placeholder').style.display = 'none';
-            document.getElementById('preview-container').style.display = 'block';
-            
-            salvarRascunho(); // Salva no LocalStorage
-        }
-
-        reader.readAsDataURL(file);
-    }
-}
-
-function removerArte() {
-    document.getElementById('inputArteCliente').value = "";
-    arquivoArteBase64 = "";
-    document.getElementById('preview-container').style.display = 'none';
-    document.getElementById('upload-placeholder').style.display = 'block';
-    
-    salvarRascunho();
 }
 // INICIALIZAÇÃO
 carregarPerfil();
