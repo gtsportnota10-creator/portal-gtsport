@@ -477,10 +477,10 @@ td input::placeholder {
     stroke: #2563eb;
 }
 
-/* Grid customizado: Nome e WhatsApp com melhor distribuição para não cortar números */
+/* Grid customizado: Nome e WhatsApp */
 .grid-cliente {
     display: grid;
-    grid-template-columns: 1.5fr 1.2fr;
+    grid-template-columns: 1fr 2fr;
     gap: 12px;
 }
 
