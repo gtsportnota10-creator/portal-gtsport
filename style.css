@@ -502,29 +502,27 @@ svg.icon-label {
     flex-shrink: 0;
     display: inline-block;
 }
-/* --- ESTILO DO CARD ARTE FINAL --- */
+/* --- ESTILO DO CARD ARTE FINAL (BLINDADO) --- */
 .card-arte-final .arte-final-wrapper {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 15px;
-    flex-wrap: wrap;
-}
-
-/* Container de prévias múltiplas (controlado pelo JS) */
-#containerPreview {
-    display: none; 
-    flex-wrap: wrap; 
-    gap: 15px; 
-    margin-top: 15px; 
     width: 100%;
 }
 
-/* Estilo para cada bloco individual de imagem e nome empilhados */
+#containerPreview {
+    display: none; /* O JS muda para 'flex' quando há arquivos */
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+    width: 100%;
+}
+
 .item-preview {
     display: flex;
-    flex-direction: column; /* Nome embaixo da imagem */
+    flex-direction: column;
     align-items: center;
-    max-width: 90px;
+    width: 80px;
 }
 
 .item-preview img {
@@ -537,14 +535,14 @@ svg.icon-label {
     object-fit: cover !important;
     border-radius: 10px !important;
     border: 2px solid #2563eb !important;
-    background-color: #f8fafc;
+    background-color: #e2e8f0;
     display: block !important;
 }
 
 .item-preview span {
     font-size: 11px;
     color: #64748b;
-    margin-top: 5px;
+    margin-top: 4px;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
