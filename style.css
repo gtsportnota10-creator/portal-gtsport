@@ -519,10 +519,4 @@ td input::placeholder {
     stroke: #2563eb;
 }
 
-/* Responsividade para celulares muito pequenos (abaixo de 420px) */
-@media (max-width: 420px) {
-    .grid-cliente {
-        grid-template-columns: 1fr; /* No celular bem estreito, empilha se necessário, mas mantém os ícones */
-        gap: 0;
-    }
-}
+
