@@ -760,21 +760,35 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.removeAttribute('list');
     }
 }
-function mostrarPreview(event) {
-    const arquivo = event.target.files[0];
+function mostrarPreviewMultiplo(event) {
+    const arquivos = event.target.files;
     const container = document.getElementById('containerPreview');
-    const imagem = document.getElementById('imgPreview');
-    const nome = document.getElementById('nomeArquivo');
+    
+    container.innerHTML = ''; // Limpa as anteriores
 
-    if (arquivo) {
-        // Cria a URL temporária para exibir a imagem
-        const objetoUrl = URL.createObjectURL(arquivo);
-        imagem.src = objetoUrl;
-        nome.textContent = arquivo.name;
-        
-        // Força a exibição como flex para alinhar no PC e no celular
+    if (arquivos && arquivos.length > 0) {
         container.style.display = 'flex';
+
+        for (let i = 0; i < arquivos.length; i++) {
+            const arquivo = arquivos[i];
+            const objetoUrl = URL.createObjectURL(arquivo);
+
+            // Cria a caixinha individual de cada imagem
+            const divItem = document.createElement('div');
+            divItem.className = 'item-preview';
+
+            const imagem = document.createElement('img');
+            imagem.src = objetoUrl;
+            imagem.alt = 'Preview';
+
+            const nome = document.createElement('span');
+            nome.textContent = arquivo.name;
+
+            divItem.appendChild(imagem);
+            divItem.appendChild(nome);
+            container.appendChild(divItem);
+        }
+    } else {
+        container.style.display = 'none';
     }
 }
-// INICIALIZAÇÃO
-carregarPerfil();
