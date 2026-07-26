@@ -65,14 +65,17 @@
     </h2>
     
     <div class="arte-final-wrapper">
-        <!-- Botão para escolher arquivos (com 'multiple' para aceitar várias) -->
+        <!-- Botão para escolher arquivo -->
         <label for="inputArteFinal" style="background: #2563eb; color: white; padding: 12px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
-            📁 Escolher Imagens
+            📁 Escolher Imagem
         </label>
-        <input type="file" id="inputArteFinal" accept="image/*" multiple style="display: none;" onchange="mostrarPreviewMultiplo(event)">
+        <input type="file" id="inputArteFinal" accept="image/*" style="display: none;" onchange="mostrarPreview(event)">
 
-        <!-- Container onde o JS vai injetar as prévias com as regras que já funcionavam -->
-        <div id="containerPreview"></div>
+        <!-- Preview da Imagem (Ajustado para PC e Celular) -->
+        <div id="containerPreview">
+            <img id="imgPreview" src="" alt="Preview">
+            <span id="nomeArquivo" style="font-size: 13px; color: #64748b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500;"></span>
+        </div>
     </div>
 </section>
             <div id="container-modelagens"></div>
