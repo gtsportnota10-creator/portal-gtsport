@@ -508,10 +508,32 @@ svg.icon-label {
     align-items: center;
     gap: 15px;
     flex-wrap: wrap;
+}/* --- ESTILO DO CARD ARTE FINAL --- */
+.card-arte-final .arte-final-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Container de prévias múltiplas */
+#containerPreview {
+    display: none; /* Controlado pelo JS */
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Estilo individual de cada miniatura com o nome embaixo */
+.item-preview {
+    display: flex;
+    flex-direction: column; /* Nome embaixo da imagem */
+    align-items: center;
+    max-width: 100px;
 }
 
 /* Força a imagem de preview a aparecer corretamente tanto no PC quanto no Celular */
-#imgPreview {
+.item-preview img {
     width: 60px !important;
     height: 60px !important;
     min-width: 60px !important;
@@ -525,8 +547,14 @@ svg.icon-label {
     background-color: #f8fafc;
 }
 
-#containerPreview {
-    display: none; /* Controlado pelo JS */
-    align-items: center;
-    gap: 10px;
+.item-preview span {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 5px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-weight: 500;
 }
