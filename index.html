@@ -61,21 +61,18 @@
 <section class="card card-arte-final">
     <h2>
         <svg class="icon-titulo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-        Arte Final
+        Arte Final (Múltiplas Imagens)
     </h2>
     
     <div class="arte-final-wrapper">
-        <!-- Botão para escolher arquivo -->
+        <!-- Botão para escolher arquivos (agora com multiple) -->
         <label for="inputArteFinal" style="background: #2563eb; color: white; padding: 12px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
-            📁 Escolher Imagem
+            📁 Escolher Imagens
         </label>
-        <input type="file" id="inputArteFinal" accept="image/*" style="display: none;" onchange="mostrarPreview(event)">
+        <input type="file" id="inputArteFinal" accept="image/*" multiple style="display: none;" onchange="mostrarPreviewMultiplo(event)">
 
-        <!-- Preview da Imagem (Ajustado para PC e Celular) -->
-        <div id="containerPreview">
-            <img id="imgPreview" src="" alt="Preview">
-            <span id="nomeArquivo" style="font-size: 13px; color: #64748b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500;"></span>
-        </div>
+        <!-- Container onde serão geradas as prévias de cada imagem lado a lado -->
+        <div id="containerPreview" style="display: none; flex-wrap: wrap; gap: 15px; margin-top: 15px; width: 100%;"></div>
     </div>
 </section>
             <div id="container-modelagens"></div>
