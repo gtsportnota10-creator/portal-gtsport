@@ -336,13 +336,33 @@ function enviarPedido() {
         return;
     }
 
+    // --- CAPTURA AS IMAGENS DA PRÉVIA PARA EXIBIR NO RESUMO ---
+    const imagensPreview = document.querySelectorAll('#containerPreview .item-preview img');
+    if (imagensPreview.length > 0) {
+        resumoHtml += `
+            <hr style="border:none; border-top: 1px dotted #e2e8f0; margin: 15px 0;">
+            <div style="margin-bottom: 10px;">
+                <strong style="font-size: 13px; color: #1e3a8a; display: block; margin-bottom: 8px;">🖼️ Artes Finais Anexadas (${imagensPreview.length}):</strong>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        `;
+
+        imagensPreview.forEach(img => {
+            resumoHtml += `
+                <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc;">
+                    <img src="${img.src}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `;
+        });
+
+        resumoHtml += `</div></div>`;
+    }
+
     // Alimenta o modal e exibe
     const modal = document.getElementById('modal-conferencia');
     document.getElementById('resumo-pedido-html').innerHTML = resumoHtml;
     modal.style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
 function fecharConferencia() {
     document.getElementById('modal-conferencia').style.display = 'none';
 }
