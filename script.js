@@ -833,9 +833,18 @@ function mostrarPreview(event) {
             divItem.appendChild(nome);
             container.appendChild(divItem);
         }
+        // RECOMENDADO: Salva no rascunho assim que a imagem é selecionada
+        if (typeof salvarRascunho === 'function') {
+            salvarRascunho();
+        }
+
     } else {
         container.style.display = 'none';
+        if (typeof salvarRascunho === 'function') {
+            salvarRascunho();
+        }
     }
+
 }
 function abrirZoomImagem(urlImagem) {
     const modal = document.getElementById('modal-imagem-zoom');
