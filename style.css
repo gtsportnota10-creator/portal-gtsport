@@ -82,11 +82,7 @@ body {
 }
 
 /* 4. CONFIGURAÇÃO DE GRIDS E ALINHAMENTOS */
-.grid-campos {
-    display: grid;
-    grid-template-columns: 1fr 1fr; 
-    gap: 15px; 
-}
+
 
 .header-modelagem {
     display: flex;
