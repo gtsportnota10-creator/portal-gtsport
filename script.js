@@ -372,13 +372,56 @@ function prepararNovoPedido() {
 
 }
 
+// --- FUNÇÃO AUXILIAR PARA COMPACTAR A IMAGEM ---
+async function compactarImagem(arquivo) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(arquivo);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let largura = img.width;
+                let altura = img.height;
+
+                // Define um limite máximo para largura/altura (ex: 1200px) mantendo a proporção
+                const maxDimenensao = 1200;
+                if (largura > altura && largura > maxDimenensao) {
+                    altura = Math.round((altura * maxDimenensao) / largura);
+                    largura = maxDimenensao;
+                } else if (altura > maxDimenensao) {
+                    largura = Math.round((largura * maxDimenensao) / altura);
+                    altura = maxDimenensao;
+                }
+
+                canvas.width = largura;
+                canvas.height = altura;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, largura, altura);
+
+                // Converte para JPEG com 80% de qualidade (ótimo para web e muito leve)
+                canvas.toBlob((blob) => {
+                    // Cria um novo arquivo compactado mantendo o nome original
+                    const arquivoCompactado = new File([blob], arquivo.name, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(arquivoCompactado);
+                }, 'image/jpeg', 0.8);
+            };
+        };
+    });
+}
+
+// --- SUA FUNÇÃO PRINCIPAL ATUALIZADA ---
 async function confirmarEEnviar() {
     const btnConfirmar = document.querySelector('#modal-conferencia .btn-main-green');
     
     if (!btnConfirmar) return;
 
     btnConfirmar.disabled = true;
-    btnConfirmar.innerText = "⏳ ENVIANDO...";
+    btnConfirmar.innerText = "⏳ COMPACTANDO E ENVIANDO...";
 
     const identificador = obterEmailVendedor();
     const nome = document.getElementById('clienteNome').value.trim();
@@ -399,18 +442,23 @@ async function confirmarEEnviar() {
             else emailReal = identificador;
         }
 
-        // --- UPLOAD DAS IMAGENS PARA O SUPABASE STORAGE (Bucket: artes-pedidos) ---
+        // --- UPLOAD DAS IMAGENS (COM COMPACTAÇÃO AUTOMÁTICA) ---
         const inputFiles = document.getElementById('inputArteFinal');
         const listaUrls = [];
 
         if (inputFiles && inputFiles.files && inputFiles.files.length > 0) {
             for (let i = 0; i < inputFiles.files.length; i++) {
-                const arquivo = inputFiles.files[i];
+                let arquivo = inputFiles.files[i];
                 
-                // Cria um nome único para o arquivo evitar conflitos de nomes iguais
+                // Reduz o tamanho do arquivo se for imagem antes de enviar
+                if (arquivo.type.startsWith('image/')) {
+                    arquivo = await compactarImagem(arquivo);
+                }
+
+                // Cria um nome único para o arquivo evitar conflitos
                 const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36).substring(2)}_${arquivo.name.replace(/\s+/g, '_')}`;
 
-                // Faz o upload para o bucket criado
+                // Faz o upload da versão compactada para o bucket artes-pedidos
                 const { error: uploadError } = await _supabase.storage
                     .from('artes-pedidos')
                     .upload(nomeArquivoUnico, arquivo);
@@ -464,14 +512,14 @@ async function confirmarEEnviar() {
             });
         });
 
-        // ENVIO PARA O SUPABASE (COM A NOVA COLUNA arte_final_url)
+        // ENVIO PARA O SUPABASE
         const { error } = await _supabase
             .from('pedidos_clientes')
             .insert([{ 
                 cliente_email: emailReal, 
                 conteudo_texto: conteudo, 
                 status: 'pendente',
-                arte_final_url: arteFinalTexto // Salva os links públicos definitivos
+                arte_final_url: arteFinalTexto 
             }]);
        
         if (error) throw error;
