@@ -767,9 +767,13 @@ function mostrarPreview(event) {
     const nome = document.getElementById('nomeArquivo');
 
     if (arquivo) {
-        imagem.src = URL.createObjectURL(arquivo);
+        // Cria a URL temporária para exibir a imagem
+        const objetoUrl = URL.createObjectURL(arquivo);
+        imagem.src = objetoUrl;
         nome.textContent = arquivo.name;
-        container.style.display = 'flex'; // Exibe o preview e o nome
+        
+        // Força a exibição como flex para alinhar no PC e no celular
+        container.style.display = 'flex';
     }
 }
 // INICIALIZAÇÃO
