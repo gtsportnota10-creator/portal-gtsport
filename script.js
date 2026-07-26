@@ -760,6 +760,39 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.removeAttribute('list');
     }
 }
+
+function mostrarPreview(event) {
+    const arquivos = event.target.files;
+    const container = document.getElementById('containerPreview');
+    
+    container.innerHTML = ''; // Limpa as anteriores
+
+    if (arquivos && arquivos.length > 0) {
+        container.style.display = 'flex';
+
+        for (let i = 0; i < arquivos.length; i++) {
+            const arquivo = arquivos[i];
+            const objetoUrl = URL.createObjectURL(arquivo);
+
+            // Cria o elemento estrutural da miniatura
+            const divItem = document.createElement('div');
+            divItem.className = 'item-preview';
+
+            const imagem = document.createElement('img');
+            imagem.src = objetoUrl;
+            imagem.alt = 'Preview';
+
+            const nome = document.createElement('span');
+            nome.textContent = arquivo.name;
+
+            divItem.appendChild(imagem);
+            divItem.appendChild(nome);
+            container.appendChild(divItem);
+        }
+    } else {
+        container.style.display = 'none';
+    }
+}
 // INICIALIZAÇÃO
 carregarPerfil();
 
