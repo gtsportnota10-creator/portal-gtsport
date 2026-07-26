@@ -65,13 +65,13 @@
     </h2>
     
     <div class="arte-final-wrapper">
-        <!-- O 'for' do label precisa ser igual ao 'id' do input -->
-        <label for="inputArteFinal" style="background: #2563eb; color: white; padding: 12px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; width: fit-content; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
+        <!-- Botão para escolher arquivos (com 'multiple' para aceitar várias) -->
+        <label for="inputArteFinal" style="background: #2563eb; color: white; padding: 12px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
             📁 Escolher Imagens
         </label>
         <input type="file" id="inputArteFinal" accept="image/*" multiple style="display: none;" onchange="mostrarPreviewMultiplo(event)">
 
-        <!-- O container onde o JS injeta as fotos -->
+        <!-- Container onde o JS vai injetar as prévias com as regras que já funcionavam -->
         <div id="containerPreview"></div>
     </div>
 </section>
