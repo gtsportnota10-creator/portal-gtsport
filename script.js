@@ -760,5 +760,17 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.removeAttribute('list');
     }
 }
+function mostrarPreview(event) {
+    const arquivo = event.target.files[0];
+    const container = document.getElementById('containerPreview');
+    const imagem = document.getElementById('imgPreview');
+    const nome = document.getElementById('nomeArquivo');
+
+    if (arquivo) {
+        imagem.src = URL.createObjectURL(arquivo);
+        nome.textContent = arquivo.name;
+        container.style.display = 'flex'; // Exibe o preview e o nome
+    }
+}
 // INICIALIZAÇÃO
 carregarPerfil();
