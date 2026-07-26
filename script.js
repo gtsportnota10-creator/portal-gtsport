@@ -781,6 +781,12 @@ function mostrarPreview(event) {
             const imagem = document.createElement('img');
             imagem.src = objetoUrl;
             imagem.alt = 'Preview';
+            
+            // ADICIONADO: Cursor de clique e evento para abrir o zoom
+            imagem.style.cursor = 'pointer';
+            imagem.onclick = function() {
+                abrirZoomImagem(objetoUrl);
+            };
 
             const nome = document.createElement('span');
             nome.textContent = arquivo.name;
