@@ -372,7 +372,6 @@ function prepararNovoPedido() {
 
 }
 
-
 async function confirmarEEnviar() {
     const btnConfirmar = document.querySelector('#modal-conferencia .btn-main-green');
     
@@ -399,40 +398,6 @@ async function confirmarEEnviar() {
             if (perfil) emailReal = perfil.email_usuario;
             else emailReal = identificador;
         }
-
-        // --- FAZ O UPLOAD DAS IMAGENS PARA O SUPABASE STORAGE ---
-        const inputArquivo = document.getElementById('inputArteFinal');
-        const listaUrlsPublicas = [];
-
-        if (inputArquivo && inputArquivo.files && inputArquivo.files.length > 0) {
-            for (let i = 0; i < inputArquivo.files.length; i++) {
-                const arquivo = inputArquivo.files[i];
-                // Cria um nome único para o arquivo para evitar conflitos
-                const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36.substring(2))}_${arquivo.name}`;
-                
-                // Envia para o bucket do Supabase Storage (Substitua 'artes-temporarias' pelo nome exato do seu bucket)
-                const { data: uploadData, error: uploadError } = await _supabase.storage
-                    .from('artes-temporarias')
-                    .upload(nomeArquivoUnico, arquivo);
-
-                if (uploadError) {
-                    console.error("Erro no upload da imagem:", uploadError);
-                    continue; // Se der erro em uma, tenta continuar com as outras
-                }
-
-                // Pega a URL pública permanente gerada pelo Supabase Storage
-                const { data: publicUrlData } = _supabase.storage
-                    .from('artes-temporarias')
-                    .getPublicUrl(nomeArquivoUnico);
-
-                if (publicUrlData && publicUrlData.publicUrl) {
-                    listaUrlsPublicas.push(publicUrlData.publicUrl);
-                }
-            }
-        }
-
-        // Junta todas as URLs públicas reais separadas por vírgula
-        const arteFinalTexto = listaUrlsPublicas.join(',');
 
         let conteudo = `NOME;${nome.toUpperCase()}\n`;
         conteudo += `TELEFONE;${fone}\n`;
@@ -464,22 +429,26 @@ async function confirmarEEnviar() {
             });
         });
 
-        // ENVIO PARA O SUPABASE (COM A URL PÚBLICA REAL DA IMAGEM)
+        // ENVIO PARA O SUPABASE
         const { error } = await _supabase
             .from('pedidos_clientes')
             .insert([{ 
                 cliente_email: emailReal, 
                 conteudo_texto: conteudo, 
-                status: 'pendente',
-                arte_final_url: arteFinalTexto 
+                status: 'pendente' 
             }]);
        
-        if (error) throw error;
+// ... dentro do try da confirmarEEnviar ...
+if (error) throw error;
 
-        // Atualiza o rascunho com o status de enviado
-        const rascunhoParaSalvar = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
-        rascunhoParaSalvar.status = 'enviado_com_sucesso'; 
-        localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
+// Pegamos o que já existe para não perder os dados dos grupos
+const rascunhoParaSalvar = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
+rascunhoParaSalvar.status = 'enviado_com_sucesso'; 
+
+// Salva com o status para a tela de sucesso persistir no Refresh
+localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
+
+
 
         // --- SUCESSO ---
         btnConfirmar.disabled = false;
