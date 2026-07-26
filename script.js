@@ -399,6 +399,15 @@ async function confirmarEEnviar() {
             else emailReal = identificador;
         }
 
+        // --- COLETA AS IMAGENS DA PRÉVIA OU DO RASCUNHO ---
+        const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+        const listaUrls = [];
+        imagensElementos.forEach(img => {
+            if (img.src) listaUrls.push(img.src);
+        });
+        // Junta todas as URLs separadas por vírgula para caber na coluna TEXT
+        const arteFinalTexto = listaUrls.join(',');
+
         let conteudo = `NOME;${nome.toUpperCase()}\n`;
         conteudo += `TELEFONE;${fone}\n`;
         conteudo += `OBS;${obsGerais}\n`;
@@ -429,26 +438,22 @@ async function confirmarEEnviar() {
             });
         });
 
-        // ENVIO PARA O SUPABASE
+        // ENVIO PARA O SUPABASE (COM A NOVA COLUNA arte_final_url)
         const { error } = await _supabase
             .from('pedidos_clientes')
             .insert([{ 
                 cliente_email: emailReal, 
                 conteudo_texto: conteudo, 
-                status: 'pendente' 
+                status: 'pendente',
+                arte_final_url: arteFinalTexto // <--- ADICIONADO AQUI
             }]);
        
-// ... dentro do try da confirmarEEnviar ...
-if (error) throw error;
+        if (error) throw error;
 
-// Pegamos o que já existe para não perder os dados dos grupos
-const rascunhoParaSalvar = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
-rascunhoParaSalvar.status = 'enviado_com_sucesso'; 
-
-// Salva com o status para a tela de sucesso persistir no Refresh
-localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
-
-
+        // Atualiza o rascunho com o status de enviado
+        const rascunhoParaSalvar = JSON.parse(localStorage.getItem('rascunho_pedido') || "{}");
+        rascunhoParaSalvar.status = 'enviado_com_sucesso'; 
+        localStorage.setItem('rascunho_pedido', JSON.stringify(rascunhoParaSalvar));
 
         // --- SUCESSO ---
         btnConfirmar.disabled = false;
