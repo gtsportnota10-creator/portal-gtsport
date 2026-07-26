@@ -760,6 +760,8 @@ function configurarSugestaoTamanho(inputTam) {
         inputTam.removeAttribute('list');
     }
 }
+// INICIALIZAÇÃO
+carregarPerfil();
 
 
 
