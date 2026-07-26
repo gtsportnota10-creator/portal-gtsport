@@ -480,7 +480,7 @@ td input::placeholder {
 /* Grid customizado: Nome e WhatsApp com melhor distribuição para não cortar números */
 .grid-cliente {
     display: grid;
-    grid-template-columns: 1.2fr 1.5fr;
+    grid-template-columns: 1.5fr 1.2fr;
     gap: 12px;
 }
 
