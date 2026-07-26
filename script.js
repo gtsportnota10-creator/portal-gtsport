@@ -767,13 +767,12 @@ function mostrarPreviewMultiplo(event) {
     container.innerHTML = ''; // Limpa as anteriores
 
     if (arquivos && arquivos.length > 0) {
-        container.style.display = 'flex';
+        container.style.display = 'flex'; // Exibe o container
 
         for (let i = 0; i < arquivos.length; i++) {
             const arquivo = arquivos[i];
             const objetoUrl = URL.createObjectURL(arquivo);
 
-            // Cria a caixinha individual de cada imagem
             const divItem = document.createElement('div');
             divItem.className = 'item-preview';
 
@@ -792,3 +791,6 @@ function mostrarPreviewMultiplo(event) {
         container.style.display = 'none';
     }
 }
+
+
+
