@@ -58,7 +58,26 @@
         <textarea id="observacoesGerais" placeholder="Algum detalhe adicional para a produção?" rows="2"></textarea>
     </div>
 </section>
+<section class="card">
+    <h2>🎨 Arte Final</h2>
+    
+    <!-- Container para alinhar botão e preview na mesma linha -->
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        
+        <!-- Botão personalizado para escolher arquivo -->
+        <label for="inputArteFinal" style="background: #2563eb; color: white; padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px;">
+            📁 Escolher Imagem
+        </label>
+        <input type="file" id="inputArteFinal" accept="image/*" style="display: none;" onchange="mostrarPreview(event)">
 
+        <!-- Preview da Imagem -->
+        <div id="containerPreview" style="display: none; align-items: center; gap: 10px;">
+            <img id="imgPreview" src="" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <span id="nomeArquivo" style="font-size: 13px; color: #64748b; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+        </div>
+        
+    </div>
+</section>
             <div id="container-modelagens"></div>
 
             <div class="acoes-pedido">
