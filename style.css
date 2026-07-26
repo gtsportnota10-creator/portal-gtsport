@@ -518,5 +518,23 @@ td input::placeholder {
 .input-com-icone:focus-within svg {
     stroke: #2563eb;
 }
+/* --- CORREÇÃO DO TAMANHO DOS ÍCONES NOS LABELS --- */
+.label-com-icone {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #475569;
+}
 
+.label-com-icone svg {
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    flex-shrink: 0;
+    stroke: #2563eb;
+}
 
