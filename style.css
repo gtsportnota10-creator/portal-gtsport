@@ -463,3 +463,66 @@ td input::placeholder {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+/* --- ESTILO MODERNO PARA O CARD DO CLIENTE --- */
+
+.card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-titulo {
+    width: 18px;
+    height: 18px;
+    stroke: #2563eb;
+}
+
+/* Grid customizado: Nome maior (2 partes) e WhatsApp menor e na medida (1.2 partes) */
+.grid-cliente {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr;
+    gap: 12px;
+}
+
+/* Estrutura para colocar o ícone dentro do input */
+.input-com-icone {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-com-icone svg {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    stroke: #94a3b8;
+    pointer-events: none;
+    transition: stroke 0.2s ease;
+}
+
+/* Ajusta o padding do input para o texto não ficar em cima do ícone */
+.input-com-icone input,
+.input-com-icone textarea {
+    padding-left: 42px !important;
+}
+
+/* Alinha o ícone do textarea um pouco mais para cima */
+.textarea-wrapper svg {
+    top: 14px;
+}
+
+/* Efeito moderno ao focar no campo (o ícone acende em azul) */
+.input-com-icone input:focus + svg,
+.input-com-icone textarea:focus + svg,
+.input-com-icone:focus-within svg {
+    stroke: #2563eb;
+}
+
+/* Responsividade para celulares muito pequenos (abaixo de 420px) */
+@media (max-width: 420px) {
+    .grid-cliente {
+        grid-template-columns: 1fr; /* No celular bem estreito, empilha se necessário, mas mantém os ícones */
+        gap: 0;
+    }
+}
