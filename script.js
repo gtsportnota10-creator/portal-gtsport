@@ -557,14 +557,23 @@ function enviarWhatsApp() {
 
 
 
-// A função salvarRascunho completa e corrigida:
 function salvarRascunho() {
     if (carregandoRascunho) return; 
+
+    // Coleta todas as imagens atuais que estão na prévia
+    const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+    const imagensSalvas = [];
+
+    imagensElementos.forEach(img => {
+        // Pega o src da imagem (que pode ser uma url blob ou base64)
+        imagensSalvas.push(img.src);
+    });
 
     const rascunho = {
         clienteNome: document.getElementById('clienteNome')?.value || "",
         clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
         observacoesGerais: document.getElementById('observacoesGerais')?.value || "",
+        imagens: imagensSalvas, // ADICIONADO: Salva as imagens em array
         grupos: []
     };
 
@@ -593,7 +602,6 @@ function salvarRascunho() {
     // SEMPRE LOCALSTORAGE PARA O CELULAR
     localStorage.setItem('rascunho_pedido', JSON.stringify(rascunho));
 }
-
 function restaurarRascunho() {
     const dadosSalvos = localStorage.getItem('rascunho_pedido');
     if (!dadosSalvos) return;
@@ -604,6 +612,35 @@ function restaurarRascunho() {
     if(document.getElementById('clienteNome')) document.getElementById('clienteNome').value = rascunho.clienteNome || "";
     if(document.getElementById('clienteTelefone')) document.getElementById('clienteTelefone').value = rascunho.clienteTelefone || "";
     if(document.getElementById('observacoesGerais')) document.getElementById('observacoesGerais').value = rascunho.observacoesGerais || "";
+
+    // RESTAURAR AS IMAGENS SALVAS
+    const containerPreview = document.getElementById('containerPreview');
+    if (containerPreview && rascunho.imagens && rascunho.imagens.length > 0) {
+        containerPreview.innerHTML = '';
+        containerPreview.style.display = 'flex';
+
+        rascunho.imagens.forEach(srcImg => {
+            const divItem = document.createElement('div');
+            divItem.className = 'item-preview';
+
+            const imagem = document.createElement('img');
+            imagem.src = srcImg;
+            imagem.alt = 'Preview';
+            
+            // Reativa a função de zoom que fizemos antes
+            imagem.style.cursor = 'pointer';
+            imagem.onclick = function() {
+                abrirZoomImagem(srcImg);
+            };
+
+            const nome = document.createElement('span');
+            nome.textContent = 'Imagem salva';
+
+            divItem.appendChild(imagem);
+            divItem.appendChild(nome);
+            containerPreview.appendChild(divItem);
+        });
+    }
 
     const container = document.getElementById('container-modelagens');
     if (!container) return;
@@ -619,7 +656,6 @@ function restaurarRascunho() {
 
     // Se tem grupos, reconstrói um por um
     rascunho.grupos.forEach((g) => {
-        // Criamos o grupo sem a linha padrão para inserir os dados do rascunho
         adicionarGrupoModelagem(false); 
         
         const gruposNoDOM = document.querySelectorAll('.grupo-modelagem');
@@ -671,7 +707,6 @@ function restaurarRascunho() {
         }
     });
 }
-
 // 1. Chama o modal em vez do confirm do navegador
 function limparItensMantendoCliente() {
     document.getElementById('modal-limpar-confirmacao').style.display = 'flex';
