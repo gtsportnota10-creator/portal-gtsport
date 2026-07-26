@@ -793,6 +793,18 @@ function mostrarPreview(event) {
         container.style.display = 'none';
     }
 }
+function abrirZoomImagem(urlImagem) {
+    const modal = document.getElementById('modal-imagem-zoom');
+    const imgAmpliada = document.getElementById('imagem-zoom-src');
+    
+    imgAmpliada.src = urlImagem;
+    modal.style.display = 'flex';
+}
+
+function fecharZoomImagem() {
+    const modal = document.getElementById('modal-imagem-zoom');
+    modal.style.display = 'none';
+}
 // INICIALIZAÇÃO
 carregarPerfil();
 
