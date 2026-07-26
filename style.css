@@ -484,41 +484,7 @@ td input::placeholder {
     gap: 12px;
 }
 
-/* Estrutura para colocar o ícone dentro do input */
-.input-com-icone {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-com-icone svg {
-    position: absolute;
-    left: 14px;
-    width: 18px;
-    height: 18px;
-    stroke: #94a3b8;
-    pointer-events: none;
-    transition: stroke 0.2s ease;
-}
-
-/* Ajusta o padding do input para o texto não ficar em cima do ícone */
-.input-com-icone input,
-.input-com-icone textarea {
-    padding-left: 42px !important;
-}
-
-/* Alinha o ícone do textarea um pouco mais para cima */
-.textarea-wrapper svg {
-    top: 14px;
-}
-
-/* Efeito moderno ao focar no campo (o ícone acende em azul) */
-.input-com-icone input:focus + svg,
-.input-com-icone textarea:focus + svg,
-.input-com-icone:focus-within svg {
-    stroke: #2563eb;
-}
-/* --- CORREÇÃO DO TAMANHO DOS ÍCONES NOS LABELS --- */
+/* --- AJUSTE DEFINITIVO PARA OS ÍCONES DOS LABELS --- */
 .label-com-icone {
     display: flex;
     align-items: center;
@@ -529,12 +495,15 @@ td input::placeholder {
     color: #475569;
 }
 
-.label-com-icone svg {
+svg.icon-label {
     width: 16px !important;
     height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
     max-width: 16px !important;
     max-height: 16px !important;
+    stroke: #2563eb !important;
     flex-shrink: 0;
-    stroke: #2563eb;
+    display: inline-block;
 }
 
