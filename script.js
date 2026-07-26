@@ -399,13 +399,39 @@ async function confirmarEEnviar() {
             else emailReal = identificador;
         }
 
-        // --- COLETA AS IMAGENS DA PRÉVIA OU DO RASCUNHO ---
-        const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+        // --- UPLOAD DAS IMAGENS PARA O SUPABASE STORAGE (Bucket: artes-pedidos) ---
+        const inputFiles = document.getElementById('inputArteFinal');
         const listaUrls = [];
-        imagensElementos.forEach(img => {
-            if (img.src) listaUrls.push(img.src);
-        });
-        // Junta todas as URLs separadas por vírgula para caber na coluna TEXT
+
+        if (inputFiles && inputFiles.files && inputFiles.files.length > 0) {
+            for (let i = 0; i < inputFiles.files.length; i++) {
+                const arquivo = inputFiles.files[i];
+                
+                // Cria um nome único para o arquivo evitar conflitos de nomes iguais
+                const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36).substring(2)}_${arquivo.name.replace(/\s+/g, '_')}`;
+
+                // Faz o upload para o bucket criado
+                const { error: uploadError } = await _supabase.storage
+                    .from('artes-pedidos')
+                    .upload(nomeArquivoUnico, arquivo);
+
+                if (uploadError) {
+                    console.error("Erro no upload da imagem:", uploadError);
+                    throw new Error("Falha ao enviar a imagem para o servidor.");
+                }
+
+                // Obtém a URL pública permanente da imagem no Storage
+                const { data: urlData } = _supabase.storage
+                    .from('artes-pedidos')
+                    .getPublicUrl(nomeArquivoUnico);
+
+                if (urlData && urlData.publicUrl) {
+                    listaUrls.push(urlData.publicUrl);
+                }
+            }
+        }
+
+        // Junta todas as URLs públicas separadas por vírgula para caber na coluna TEXT
         const arteFinalTexto = listaUrls.join(',');
 
         let conteudo = `NOME;${nome.toUpperCase()}\n`;
@@ -445,7 +471,7 @@ async function confirmarEEnviar() {
                 cliente_email: emailReal, 
                 conteudo_texto: conteudo, 
                 status: 'pendente',
-                arte_final_url: arteFinalTexto // <--- ADICIONADO AQUI
+                arte_final_url: arteFinalTexto // Salva os links públicos definitivos
             }]);
        
         if (error) throw error;
