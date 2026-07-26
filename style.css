@@ -510,23 +510,45 @@ svg.icon-label {
     flex-wrap: wrap;
 }
 
-/* Força a imagem de preview a aparecer corretamente tanto no PC quanto no Celular */
-#imgPreview {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    min-height: 60px !important;
-    max-width: 60px !important;
-    max-height: 60px !important;
-    object-fit: cover !important;
-    border-radius: 8px !important;
-    border: 2px solid #2563eb !important;
-    display: block !important;
-    background-color: #f8fafc;
+/* Container de prévias múltiplas (controlado pelo JS) */
+#containerPreview {
+    display: none; 
+    flex-wrap: wrap; 
+    gap: 15px; 
+    margin-top: 15px; 
+    width: 100%;
 }
 
-#containerPreview {
-    display: none; /* Controlado pelo JS */
+/* Estilo para cada bloco individual de imagem e nome empilhados */
+.item-preview {
+    display: flex;
+    flex-direction: column; /* Nome embaixo da imagem */
     align-items: center;
-    gap: 10px;
+    max-width: 90px;
+}
+
+.item-preview img {
+    width: 70px !important;
+    height: 70px !important;
+    min-width: 70px !important;
+    min-height: 70px !important;
+    max-width: 70px !important;
+    max-height: 70px !important;
+    object-fit: cover !important;
+    border-radius: 10px !important;
+    border: 2px solid #2563eb !important;
+    background-color: #f8fafc;
+    display: block !important;
+}
+
+.item-preview span {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 5px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-weight: 500;
 }
