@@ -505,37 +505,34 @@ svg.icon-label {
 /* --- ESTILO DO CARD ARTE FINAL --- */
 .card-arte-final .arte-final-wrapper {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 15px;
-    width: 100%;
+    flex-wrap: wrap;
 }
 
-/* Container de prévias múltiplas */
 #containerPreview {
-    display: none; 
-    flex-wrap: wrap; 
-    gap: 12px; 
-    margin-top: 5px; 
-    width: 100%;
+    display: none; /* Controlado pelo JS */
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
-/* Estilo individual de cada miniatura com o nome embaixo */
+/* Caixa individual de cada preview empilhando imagem e nome */
 .item-preview {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 80px;
-    flex-shrink: 0;
+    max-width: 100px;
 }
 
-/* Força a imagem de preview a aparecer em qualquer dispositivo */
+/* Força a imagem de preview a aparecer corretamente tanto no PC quanto no Celular */
 .item-preview img {
-    width: 70px !important;
-    height: 70px !important;
-    min-width: 70px !important;
-    min-height: 70px !important;
-    max-width: 70px !important;
-    max-height: 70px !important;
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
     object-fit: cover !important;
     border-radius: 8px !important;
     border: 2px solid #2563eb !important;
