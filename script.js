@@ -337,8 +337,9 @@ function enviarPedido() {
         return;
     }
 
-    // --- CAPTURA DIRETO DAS IMAGENS DA PRÉVIA NA TELA (FUNCIONA MESMO APÓS ATUALIZAR A PÁGINA) ---
+    // --- CAPTURA ROBUSTA: OLHA TANTO O INPUT QUANTO AS IMAGENS JÁ NA TELA ---
     const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+    
     if (imagensElementos && imagensElementos.length > 0) {
         resumoHtml += `
             <hr style="border:none; border-top: 1px dotted #e2e8f0; margin: 15px 0;">
@@ -348,7 +349,7 @@ function enviarPedido() {
         `;
 
         imagensElementos.forEach(img => {
-            const srcImg = img.src; // Pega o Base64 ou URL exibido no preview
+            const srcImg = img.src; // Pega o caminho/Base64 da imagem visível no preview
             resumoHtml += `
                 <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc;">
                     <img src="${srcImg}" style="width: 100%; height: 100%; object-fit: cover;">
