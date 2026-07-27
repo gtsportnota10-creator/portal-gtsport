@@ -468,23 +468,21 @@ async function confirmarEEnviar() {
             else emailReal = identificador;
         }
 
-        // --- UPLOAD DAS IMAGENS (COM COMPACTAÇÃO AUTOMÁTICA) ---
+        // --- UPLOAD DAS IMAGENS (SUPORTE A INPUT E RASCUNHO/BASE64) ---
         const inputFiles = document.getElementById('inputArteFinal');
         const listaUrls = [];
 
+        // Cenário A: Existem arquivos físicos novos no input
         if (inputFiles && inputFiles.files && inputFiles.files.length > 0) {
             for (let i = 0; i < inputFiles.files.length; i++) {
                 let arquivo = inputFiles.files[i];
                 
-                // Reduz o tamanho do arquivo se for imagem antes de enviar
                 if (arquivo.type.startsWith('image/')) {
                     arquivo = await compactarImagem(arquivo);
                 }
 
-                // Cria um nome único para o arquivo evitar conflitos
                 const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36).substring(2)}_${arquivo.name.replace(/\s+/g, '_')}`;
 
-                // Faz o upload da versão compactada para o bucket artes-pedidos
                 const { error: uploadError } = await _supabase.storage
                     .from('artes-pedidos')
                     .upload(nomeArquivoUnico, arquivo);
@@ -494,13 +492,55 @@ async function confirmarEEnviar() {
                     throw new Error("Falha ao enviar a imagem para o servidor.");
                 }
 
-                // Obtém a URL pública permanente da imagem no Storage
                 const { data: urlData } = _supabase.storage
                     .from('artes-pedidos')
                     .getPublicUrl(nomeArquivoUnico);
 
                 if (urlData && urlData.publicUrl) {
                     listaUrls.push(urlData.publicUrl);
+                }
+            }
+        } 
+        // Cenário B: O input está vazio, mas há imagens renderizadas na tela (vindas de rascunho/Base64)
+        else {
+            const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+            
+            for (let i = 0; i < imagensElementos.length; i++) {
+                let srcImg = imagensElementos[i].src;
+
+                // Se a imagem já for uma URL pública do Supabase, apenas reaproveita
+                if (srcImg.startsWith('http')) {
+                    listaUrls.push(srcImg);
+                } 
+                // Se for Base64 (veio do rascunho), precisamos converter de volta para File e fazer o upload
+                else if (srcImg.startsWith('data:image')) {
+                    try {
+                        const res = await fetch(srcImg);
+                        const blob = await res.blob();
+                        let arquivo = new File([blob], `rascunho_img_${Date.now()}_${i}.png`, { type: blob.type });
+
+                        if (arquivo.type.startsWith('image/')) {
+                            arquivo = await compactarImagem(arquivo);
+                        }
+
+                        const nomeArquivoUnico = `${Date.now()}_${Math.random().toString(36).substring(2)}_${arquivo.name}`;
+
+                        const { error: uploadError } = await _supabase.storage
+                            .from('artes-pedidos')
+                            .upload(nomeArquivoUnico, arquivo);
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: urlData } = _supabase.storage
+                            .from('artes-pedidos')
+                            .getPublicUrl(nomeArquivoUnico);
+
+                        if (urlData && urlData.publicUrl) {
+                            listaUrls.push(urlData.publicUrl);
+                        }
+                    } catch (e) {
+                        console.error("Erro ao converter imagem em Base64 do rascunho:", e);
+                    }
                 }
             }
         }
