@@ -337,6 +337,28 @@ function enviarPedido() {
         return;
     }
 
+    // --- CAPTURA DIRETO DAS IMAGENS DA PRÉVIA NA TELA (FUNCIONA MESMO APÓS ATUALIZAR A PÁGINA) ---
+    const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+    if (imagensElementos && imagensElementos.length > 0) {
+        resumoHtml += `
+            <hr style="border:none; border-top: 1px dotted #e2e8f0; margin: 15px 0;">
+            <div style="margin-bottom: 10px;">
+                <strong style="font-size: 13px; color: #1e3a8a; display: block; margin-bottom: 8px;">🖼️ Artes Finais Anexadas (${imagensElementos.length}):</strong>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        `;
+
+        imagensElementos.forEach(img => {
+            const srcImg = img.src; // Pega o Base64 ou URL exibido no preview
+            resumoHtml += `
+                <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc;">
+                    <img src="${srcImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `;
+        });
+
+        resumoHtml += `</div></div>`;
+    }
+
     // Alimenta o modal e exibe
     const modal = document.getElementById('modal-conferencia');
     document.getElementById('resumo-pedido-html').innerHTML = resumoHtml;
