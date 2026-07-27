@@ -590,7 +590,7 @@ function voltarParaEditar() {
 }
 
 
-async function enviarWhatsApp() {
+function enviarWhatsApp() {
     const nome = document.getElementById('clienteNome').value.trim().toUpperCase();
     const obsGerais = document.getElementById('observacoesGerais').value.trim();
     const empresa = document.getElementById('nome-empresa').innerText;
@@ -628,6 +628,7 @@ async function enviarWhatsApp() {
             if (item || tam || qtd > 0) {
                 totalGeralPeças += qtd;
                 
+                // Formatação solicitada: > 1 un. - M - GILSON (N 99) [Camisa]
                 let linha = " > " + qtd + " un. - " + (tam || "S/T");
                 
                 if (item) linha += " - " + item;
@@ -642,31 +643,14 @@ async function enviarWhatsApp() {
 
     msg += div + "\n";
     msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
-
-    // --- ADICIONA O LINK DA(S) ARTE(S) NA MENSAGEM DO WHATSAPP ---
-    const inputFiles = document.getElementById('inputArteFinal');
-    if (inputFiles && inputFiles.files && inputFiles.files.length > 0) {
-        msg += "\n*🖼️ ARTE(S) FINAL(IS):*\n";
-        
-        for (let i = 0; i < inputFiles.files.length; i++) {
-            let arquivo = inputFiles.files[i];
-            
-            // Se você quiser que o link enviado seja o do Supabase após o upload, 
-            // o ideal é chamar a função de upload antes ou recuperar do banco. 
-            // Mas para enviar o link direto gerado pelo objeto local ou se já salvou:
-            // Caso já tenha subido para o Supabase no fluxo anterior, podemos resgatar a URL:
-            const arquivoUrl = URL.createObjectURL(arquivo); // ou insira a URL pública do Supabase se preferir
-            msg += `${arquivoUrl}\n`;
-        }
-    }
-
-    msg += "\nGerado via Portal de Pedidos";
+    msg += "Gerado via Portal de Pedidos";
 
     const textoFinal = encodeURIComponent(msg);
     const linkZap = "https://wa.me/?text=" + textoFinal;
 
     window.open(linkZap, '_blank');
 }
+
 
 // --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
 
