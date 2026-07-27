@@ -627,14 +627,10 @@ async function enviarWhatsApp() {
 
             if (item || tam || qtd > 0) {
                 totalGeralPeças += qtd;
-                
-                // Formatação solicitada: > 1 un. - M - GILSON (N 99) [Camisa]
                 let linha = " > " + qtd + " un. - " + (tam || "S/T");
-                
                 if (item) linha += " - " + item;
                 if (num) linha += " (N " + num + ")";
                 if (adicional) linha += " [" + adicional + "]";
-                
                 msg += linha + "\n";
             }
         });
@@ -645,26 +641,39 @@ async function enviarWhatsApp() {
     msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
     msg += "Gerado via Portal de Pedidos";
 
-    // --- COPIA A IMAGEM ESCOLHIDA PARA A ÁREA DE TRANSFERÊNCIA ---
+    // --- TENTA COPIAR A IMAGEM E O TEXTO JUNTOS PARA A ÁREA DE TRANSFERÊNCIA ---
     const inputFiles = document.getElementById('inputArteFinal');
+    let imagemCopiada = false;
+
     if (inputFiles && inputFiles.files && inputFiles.files.length > 0 && navigator.clipboard && window.ClipboardItem) {
         try {
             const arquivo = inputFiles.files[0];
-            const blob = await arquivo.slice(0, arquivo.size, arquivo.type);
-            const item = new ClipboardItem({ [blob.type]: blob });
-            await navigator.clipboard.write([item]);
+            const blob = arquivo.slice(0, arquivo.size, arquivo.type);
+            
+            // Prepara um objeto contendo a imagem e o texto juntos na área de transferência
+            const clipboardData = {
+                [blob.type]: blob,
+                "text/plain": msg
+            };
+            
+            await navigator.clipboard.write([new ClipboardItem(clipboardData)]);
+            imagemCopiada = true;
         } catch (e) {
-            console.log("Não foi possível copiar a imagem automaticamente para a área de transferência.", e);
+            console.log("O navegador bloqueou o envio misto, tentando apenas imagem...", e);
         }
     }
 
-    // Abre o WhatsApp com o texto formatado
-    const textoFinal = encodeURIComponent(msg);
-    const linkZap = "https://wa.me/?text=" + textoFinal;
-
-    window.open(linkZap, '_blank');
+    // Se por acaso o navegador não aceitar os dois juntos, copiamos só a imagem e abrimos o link com o texto
+    if (imagemCopiada) {
+        alert("Imagem e texto copiados com sucesso! Agora basta abrir a conversa do WhatsApp e apertar Ctrl + V para colar tudo de uma vez.");
+        // Opcional: abrir o chat geral do WhatsApp sem texto, já que o texto está no Ctrl+V junto com a imagem
+        window.open("https://wa.me/", '_blank');
+    } else {
+        // Fallback tradicional caso o navegador seja restritivo
+        const textoFinal = encodeURIComponent(msg);
+        window.open("https://wa.me/?text=" + textoFinal, '_blank');
+    }
 }
-
 // --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
 
 
