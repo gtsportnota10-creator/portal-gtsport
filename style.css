@@ -510,31 +510,40 @@ svg.icon-label {
     flex-wrap: wrap;
 }
 
+/* Diminui o botão / input de escolher arquivo */
+.card-arte-final input[type="file"],
+.card-arte-final .btn-escolher-arte {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    height: auto !important;
+}
+
 #containerPreview {
     display: none; /* Controlado pelo JS */
     align-items: center;
     gap: 15px;
     flex-wrap: wrap;
+    margin-top: 10px;
 }
 
-/* Caixa individual de cada preview empilhando imagem e nome */
+/* Caixa individual de cada preview empilhando imagem e nome (Aumentada para 110px) */
 .item-preview {
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 100px;
+    max-width: 110px;
 }
 
-/* Força a imagem de preview a aparecer corretamente tanto no PC quanto no Celular */
+/* Aumenta a prévia da imagem no card tanto no PC quanto no Celular */
 .item-preview img {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    min-height: 60px !important;
-    max-width: 60px !important;
-    max-height: 60px !important;
+    width: 110px !important;
+    height: 110px !important;
+    min-width: 110px !important;
+    min-height: 110px !important;
+    max-width: 110px !important;
+    max-height: 110px !important;
     object-fit: cover !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     border: 2px solid #2563eb !important;
     display: block !important;
     background-color: #f8fafc;
