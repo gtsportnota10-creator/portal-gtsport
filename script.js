@@ -590,7 +590,7 @@ function voltarParaEditar() {
 }
 
 
-function enviarWhatsApp() {
+async function enviarWhatsApp() {
     const nome = document.getElementById('clienteNome').value.trim().toUpperCase();
     const obsGerais = document.getElementById('observacoesGerais').value.trim();
     const empresa = document.getElementById('nome-empresa').innerText;
@@ -645,12 +645,25 @@ function enviarWhatsApp() {
     msg += "TOTAL DE PEÇAS: " + totalGeralPeças + "\n";
     msg += "Gerado via Portal de Pedidos";
 
+    // --- COPIA A IMAGEM ESCOLHIDA PARA A ÁREA DE TRANSFERÊNCIA ---
+    const inputFiles = document.getElementById('inputArteFinal');
+    if (inputFiles && inputFiles.files && inputFiles.files.length > 0 && navigator.clipboard && window.ClipboardItem) {
+        try {
+            const arquivo = inputFiles.files[0];
+            const blob = await arquivo.slice(0, arquivo.size, arquivo.type);
+            const item = new ClipboardItem({ [blob.type]: blob });
+            await navigator.clipboard.write([item]);
+        } catch (e) {
+            console.log("Não foi possível copiar a imagem automaticamente para a área de transferência.", e);
+        }
+    }
+
+    // Abre o WhatsApp com o texto formatado
     const textoFinal = encodeURIComponent(msg);
     const linkZap = "https://wa.me/?text=" + textoFinal;
 
     window.open(linkZap, '_blank');
 }
-
 
 // --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
 
