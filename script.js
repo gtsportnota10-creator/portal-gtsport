@@ -253,119 +253,232 @@ function adicionarLinhaItem(botao) {
 }
 
 function enviarPedido() {
+
     const nome = document.getElementById('clienteNome').value.trim();
+
     const fone = document.getElementById('clienteTelefone').value.trim();
+
     const obsGerais = document.getElementById('observacoesGerais').value.trim();
+
     
+
     if (!nome || !fone) {
+
         alert("Por favor, preencha Nome e WhatsApp.");
+
         return;
+
     }
+
+
 
     // Parte superior: Dados do Cliente com ícones
+
     let resumoHtml = `
+
         <div style="margin-bottom: 15px; padding-left: 5px;">
+
             <p style="margin: 4px 0;"><strong> Cliente:</strong> ${nome.toUpperCase()}</p>
+
             <p style="margin: 4px 0;"><strong> WhatsApp:</strong> ${fone}</p>
+
             ${obsGerais ? `<p style="margin: 4px 0; color: #64748b; font-size: 13px;"><strong> Obs:</strong> ${obsGerais}</p>` : ''}
+
         </div>
+
         <hr style="border:none; border-top: 1px dotted #e2e8f0; margin-bottom: 15px;">
+
     `;
 
+
+
     let temItemValido = false;
+
     const grupos = document.querySelectorAll('.grupo-modelagem');
 
+
+
     grupos.forEach(grupo => {
+
         const selectTec = grupo.querySelector('.i-tec-nome');
+
         const inputTecManual = grupo.querySelector('.i-tec-manual');
+
         let tecido = (selectTec.value === "OUTRA") ? inputTecManual.value : selectTec.value;
+
         
+
         const selectMod = grupo.querySelector('.i-mod-nome');
+
         const inputModManual = grupo.querySelector('.i-mod-manual');
+
         let modelagem = (selectMod.value === "OUTRA") ? inputModManual.value : selectMod.value;
 
+
+
         // Cabeçalho do Grupo e abertura da tabela com títulos em CAIXA ALTA
+
         resumoHtml += `
+
             <div class="resumo-header-grupo">
+
                 <span style="font-weight: 800; color: #1e3a8a;">${(modelagem || 'MODELAGEM').toUpperCase()}</span>
+
                 <span style="font-size: 12px; color: #2563eb; font-weight: 600;">🧵 ${(tecido || 'TECIDO').toUpperCase()}</span>
+
             </div>
+
             <div class="tabela-resumo-wrapper">
+
                 <table class="resumo-tabela">
+
                     <thead>
+
                         <tr>
+
                             <th>QTD</th>
+
                             <th>ITEM / TAMANHO</th>
+
                             <th style="text-align:center;">Nº</th>
+
                             <th>ADICIONAL</th>
+
                         </tr>
+
                     </thead>
+
                     <tbody>
+
         `;
+
         
+
         grupo.querySelectorAll('.corpo-tabela-itens tr').forEach(row => {
+
             const item = row.querySelector('.i-nome').value.trim();
+
             const tam = row.querySelector('.i-tam').value.trim().toUpperCase();
+
             const num = row.querySelector('.i-num').value.trim();
+
             const qtd = row.querySelector('.i-qtd').value;
+
             const adicional = row.querySelector('.i-adicional').value.trim();
 
+
+
             if (item || tam) {
+
                 temItemValido = true;
+
                 
+
                 // Se não tem nome, adiciona o rótulo "TAM:" para não ficar vazio
+
                 const displayItem = item 
+
                     ? `<strong>${item.toUpperCase()}</strong> <span class="badge-tamanho">${tam}</span>`
+
                     : `<span style="color:#64748b; font-size:11px;">TAM:</span> <span class="badge-tamanho">${tam}</span>`;
 
+
+
                 resumoHtml += `
+
                     <tr>
+
                         <td><span class="badge-qtd">${qtd}</span></td>
+
                         <td>${displayItem}</td>
+
                         <td style="text-align:center;" class="${!num ? 'vazio-tab' : ''}">${num || '-'}</td>
+
                         <td class="${!adicional ? 'vazio-tab' : ''}">${adicional || '-'}</td>
+
                     </tr>
+
                 `;
+
             }
+
         });
+
+
 
         resumoHtml += `</tbody></table></div>`;
+
     });
 
+
+
     if (!temItemValido) {
+
         alert("Adicione pelo menos um item ao pedido.");
+
         return;
+
     }
 
-    // --- CAPTURA ROBUSTA: OLHA TANTO O INPUT QUANTO AS IMAGENS JÁ NA TELA ---
-    const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
-    
-    if (imagensElementos && imagensElementos.length > 0) {
+
+
+    // --- CAPTURA DIRETO DO INPUT DE ARQUIVOS (FUNCIONA EM QUALQUER DISPOSITIVO) ---
+
+    const inputFiles = document.getElementById('inputArteFinal');
+
+    if (inputFiles && inputFiles.files && inputFiles.files.length > 0) {
+
         resumoHtml += `
+
             <hr style="border:none; border-top: 1px dotted #e2e8f0; margin: 15px 0;">
+
             <div style="margin-bottom: 10px;">
-                <strong style="font-size: 13px; color: #1e3a8a; display: block; margin-bottom: 8px;">🖼️ Artes Finais Anexadas (${imagensElementos.length}):</strong>
+
+                <strong style="font-size: 13px; color: #1e3a8a; display: block; margin-bottom: 8px;">🖼️ Artes Finais Anexadas (${inputFiles.files.length}):</strong>
+
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
         `;
 
-        imagensElementos.forEach(img => {
-            const srcImg = img.src; // Pega o caminho/Base64 da imagem visível no preview
+
+
+        for (let i = 0; i < inputFiles.files.length; i++) {
+
+            const arquivoUrl = URL.createObjectURL(inputFiles.files[i]);
+
             resumoHtml += `
+
                 <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; background: #f8fafc;">
-                    <img src="${srcImg}" style="width: 100%; height: 100%; object-fit: cover;">
+
+                    <img src="${arquivoUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+
                 </div>
+
             `;
-        });
+
+        }
+
+
 
         resumoHtml += `</div></div>`;
+
     }
 
+
+
     // Alimenta o modal e exibe
+
     const modal = document.getElementById('modal-conferencia');
+
     document.getElementById('resumo-pedido-html').innerHTML = resumoHtml;
+
     modal.style.display = 'flex';
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+
+} 
+
+
 
 function fecharConferencia() {
     document.getElementById('modal-conferencia').style.display = 'none';
