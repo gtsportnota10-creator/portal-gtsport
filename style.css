@@ -526,22 +526,22 @@ svg.icon-label {
     margin-top: 10px;
 }
 
-/* Caixa individual de cada preview empilhando imagem e nome (Aumentada para 110px) */
+/* Caixa individual de cada preview atualizada para o dobro */
 .item-preview {
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 110px;
+    max-width: 220px;
 }
 
-/* Aumenta a prévia da imagem no card tanto no PC quanto no Celular */
+/* Dobra o tamanho da prévia da imagem (de 110px para 220px) */
 .item-preview img {
-    width: 110px !important;
-    height: 110px !important;
-    min-width: 110px !important;
-    min-height: 110px !important;
-    max-width: 110px !important;
-    max-height: 110px !important;
+    width: 220px !important;
+    height: 220px !important;
+    min-width: 220px !important;
+    min-height: 220px !important;
+    max-width: 220px !important;
+    max-height: 220px !important;
     object-fit: cover !important;
     border-radius: 10px !important;
     border: 2px solid #2563eb !important;
@@ -560,7 +560,6 @@ svg.icon-label {
     width: 100%;
     font-weight: 500;
 }
-
 
 
 
