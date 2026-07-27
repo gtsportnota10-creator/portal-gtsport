@@ -10,7 +10,8 @@ let dicionarioTamanhos = {};
 let ultimoTecidoSelecionado = "";
 let ultimoTecidoManual = "";
 let carregandoRascunho = false; // Impede que o sistema salve por cima enquanto reconstrói a tela
-
+// Crie esta variável globalmente no seu código (fora da função) para controlar os arquivos selecionados
+let arquivosSelecionados = [];
 
 function obterEmailVendedor() {
     const urlAtual = window.location.href;
@@ -894,28 +895,34 @@ function configurarSugestaoTamanho(inputTam) {
     }
 }
 
-function mostrarPreview(event) {
-    const arquivos = event.target.files;
-    const container = document.getElementById('containerPreview');
-    
-    container.innerHTML = ''; // Limpa as anteriores
 
-    if (arquivos && arquivos.length > 0) {
+
+function mostrarPreview(event) {
+    const container = document.getElementById('containerPreview');
+    const inputFiles = event.target;
+    
+    // Se novos arquivos foram selecionados pelo input, adicionamos ao nosso array
+    if (event.target.files && event.target.files.length > 0) {
+        // Converte a FileList para um array real e acumula ou substitui (aqui optamos por substituir ou juntar, vamos manter o comportamento de atualizar com os novos selecionados)
+        arquivosSelecionados = Array.from(event.target.files);
+    }
+
+    container.innerHTML = ''; // Limpa o container visual
+
+    if (arquivosSelecionados.length > 0) {
         container.style.display = 'flex';
 
-        for (let i = 0; i < arquivos.length; i++) {
-            const arquivo = arquivos[i];
+        arquivosSelecionados.forEach((arquivo, index) => {
             const objetoUrl = URL.createObjectURL(arquivo);
 
             // Cria o elemento estrutural da miniatura
             const divItem = document.createElement('div');
             divItem.className = 'item-preview';
+            divItem.style.position = 'relative'; // Necessário para posicionar o botão X absolute
 
             const imagem = document.createElement('img');
             imagem.src = objetoUrl;
             imagem.alt = 'Preview';
-            
-            // ADICIONADO: Cursor de clique e evento para abrir o zoom
             imagem.style.cursor = 'pointer';
             imagem.onclick = function() {
                 abrirZoomImagem(objetoUrl);
@@ -924,11 +931,43 @@ function mostrarPreview(event) {
             const nome = document.createElement('span');
             nome.textContent = arquivo.name;
 
+            // --- BOTÃO DE DELETAR (X) ---
+            const btnDeletar = document.createElement('button');
+            btnDeletar.innerHTML = '&times;';
+            btnDeletar.type = 'button';
+            // Estilo rápido para o botão X ficar bonito no canto da imagem
+            btnDeletar.style.cssText = `
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                background: rgba(239, 68, 68, 0.9);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                z-index: 10;
+            `;
+
+            // Ação ao clicar no X para remover a imagem
+            btnDeletar.onclick = function(e) {
+                e.stopPropagation(); // Evita abrir o zoom ao clicar no X
+                removerImagemPreview(index, inputFiles);
+            };
+
             divItem.appendChild(imagem);
+            divItem.appendChild(btnDeletar);
             divItem.appendChild(nome);
             container.appendChild(divItem);
-        }
-        // RECOMENDADO: Salva no rascunho assim que a imagem é selecionada
+        });
+
         if (typeof salvarRascunho === 'function') {
             salvarRascunho();
         }
@@ -939,7 +978,21 @@ function mostrarPreview(event) {
             salvarRascunho();
         }
     }
+}
 
+// Função auxiliar para remover o item da lista quando clicar no X
+function removerImagemPreview(index, inputFiles) {
+    // Remove do nosso array de controle
+    arquivosSelecionados.splice(index, 1);
+
+    // Atualiza o input file real usando DataTransfer para refletir a exclusão
+    const dataTransfer = new DataTransfer();
+    arquivosSelecionados.forEach(file => dataTransfer.items.add(file));
+    inputFiles.files = dataTransfer.files;
+
+    // Recria o preview chamando a função novamente com o input atualizado
+    const eventoFicticio = { target: inputFiles };
+    mostrarPreview(eventoFicticio);
 }
 function abrirZoomImagem(urlImagem) {
     const modal = document.getElementById('modal-imagem-zoom');
