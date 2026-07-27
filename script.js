@@ -653,9 +653,6 @@ function enviarWhatsApp() {
 }
 
 // --- FUNÇÕES DE RASCUNHO (SESSION STORAGE) ---
-
-
-
 function salvarRascunho() {
     if (carregandoRascunho) return; 
 
@@ -714,28 +711,74 @@ function restaurarRascunho() {
 
     // RESTAURAR AS IMAGENS SALVAS
     const containerPreview = document.getElementById('containerPreview');
+    const inputFiles = document.getElementById('inputArteFinal');
+
     if (containerPreview && rascunho.imagens && rascunho.imagens.length > 0) {
         containerPreview.innerHTML = '';
         containerPreview.style.display = 'flex';
 
-        rascunho.imagens.forEach(srcImg => {
+        rascunho.imagens.forEach((srcImg, index) => {
             const divItem = document.createElement('div');
             divItem.className = 'item-preview';
+            divItem.style.position = 'relative';
 
             const imagem = document.createElement('img');
             imagem.src = srcImg;
             imagem.alt = 'Preview';
-            
-            // Reativa a função de zoom que fizemos antes
             imagem.style.cursor = 'pointer';
             imagem.onclick = function() {
                 abrirZoomImagem(srcImg);
+            };
+
+            // --- BOTÃO DE DELETAR (X) ADICIONADO AQUI ---
+            const btnDeletar = document.createElement('button');
+            btnDeletar.innerHTML = '&times;';
+            btnDeletar.type = 'button';
+            btnDeletar.style.cssText = `
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                background: rgba(239, 68, 68, 0.9);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                z-index: 10;
+            `;
+
+            // Ação ao clicar no X quando a imagem é restaurada
+            btnDeletar.onclick = function(e) {
+                e.stopPropagation();
+                // Remove o item da tela
+                divItem.remove();
+                
+                // Esconde a prévia se não houver mais imagens
+                if (containerPreview.children.length === 0) {
+                    containerPreview.style.display = 'none';
+                }
+
+                // Se houver controle por array global
+                if (typeof arquivosSelecionados !== 'undefined') {
+                    arquivosSelecionados.splice(index, 1);
+                }
+
+                // Atualiza o rascunho no localStorage
+                salvarRascunho();
             };
 
             const nome = document.createElement('span');
             nome.textContent = 'Imagem salva';
 
             divItem.appendChild(imagem);
+            divItem.appendChild(btnDeletar); // Adiciona o botão X no item
             divItem.appendChild(nome);
             containerPreview.appendChild(divItem);
         });
@@ -747,7 +790,7 @@ function restaurarRascunho() {
     // Limpa o container para reconstruir
     container.innerHTML = "";
 
-    // SEGURANÇA: Se o rascunho não tem grupos, adiciona um vazio e para por aqui
+    // SEGURANÇA: Se o rascunho não tem grupos, adiciona um vazio
     if (!rascunho.grupos || rascunho.grupos.length === 0) {
         adicionarGrupoModelagem(true);
         return;
