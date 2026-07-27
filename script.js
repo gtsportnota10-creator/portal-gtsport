@@ -656,20 +656,45 @@ function enviarWhatsApp() {
 function salvarRascunho() {
     if (carregandoRascunho) return; 
 
-    // Coleta todas as imagens atuais que estão na prévia
-    const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
-    const imagensSalvas = [];
+    const inputFiles = document.getElementById('inputArteFinal');
 
-    imagensElementos.forEach(img => {
-        // Pega o src da imagem (que pode ser uma url blob ou base64)
-        imagensSalvas.push(img.src);
-    });
+    // Se houver arquivos selecionados no input, converte para Base64 antes de salvar para não quebrar ao fechar o navegador
+    if (inputFiles && inputFiles.files && inputFiles.files.length > 0) {
+        const arquivosArray = Array.from(inputFiles.files);
+        let imagensProcessadas = 0;
+        const imagensSalvas = [];
 
+        arquivosArray.forEach((arquivo, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagensSalvas[index] = e.target.result; // Salva o Base64 na ordem certa
+                imagensProcessadas++;
+
+                // Quando terminar de processar todas as imagens, grava o rascunho completo
+                if (imagensProcessadas === arquivosArray.length) {
+                    gravarRascunhoFinal(imagensSalvas);
+                }
+            };
+            reader.readAsDataURL(arquivo);
+        });
+    } else {
+        // Se não houver arquivos no input, tenta pegar o que já está na tela ou salva vazio
+        const imagensElementos = document.querySelectorAll('#containerPreview .item-preview img');
+        const imagensSalvas = [];
+        imagensElementos.forEach(img => {
+            if (img.src) imagensSalvas.push(img.src);
+        });
+        gravarRascunhoFinal(imagensSalvas);
+    }
+}
+
+// Função auxiliar interna para manter a exata mesma lógica do seu código original de salvamento
+function gravarRascunhoFinal(imagensSalvas) {
     const rascunho = {
         clienteNome: document.getElementById('clienteNome')?.value || "",
         clienteTelefone: document.getElementById('clienteTelefone')?.value || "",
         observacoesGerais: document.getElementById('observacoesGerais')?.value || "",
-        imagens: imagensSalvas, // ADICIONADO: Salva as imagens em array
+        imagens: imagensSalvas, // Salva as imagens em array
         grupos: []
     };
 
